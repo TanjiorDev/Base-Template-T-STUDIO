@@ -448,34 +448,6 @@ Avant toute mise à jour de la Base Template :
 8. Redémarrez le serveur.
 9. Contrôlez entièrement la console.
 
-> 💾 Faites toujours une sauvegarde avant une mise à jour importante.
-
----
-
-# 🌐 GitHub
-
-Pour contribuer ou modifier la template :
-
-```bash
-git clone VOTRE_URL_GITHUB
-```
-
-Puis :
-
-```bash
-cd Base-Template-T-Studio
-```
-
-Après vos modifications :
-
-```bash
-git add .
-git commit -m "Update Base Template T-Studio"
-git push
-```
-
----
-
 # ⚠️ Important
 
 Cette Base Template constitue un point de départ.
