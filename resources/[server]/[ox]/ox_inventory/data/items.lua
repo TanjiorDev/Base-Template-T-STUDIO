@@ -3409,6 +3409,183 @@ return {
 		}
 	},
 
+
+     ['clothes_hat'] = {
+        label = 'Hat',
+        weight = 50,
+        stack = false,
+        close = false,
+        buttons = {
+            {
+                label = 'Show/Hide Hair',
+                action = function(slot)
+                    TriggerEvent('p_itemclothes/client/toggleHair')
+                end
+            },
+        },
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_ears'] = {
+        label = 'Ear Accessories',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_tshirt'] = {
+        label = 'T-Shirt',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_torso'] = {
+        label = 'Jacket',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_arms'] = {
+        label = 'Gloves',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_pants'] = {
+        label = 'Pants',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_shoes'] = {
+        label = 'Shoes',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_mask'] = {
+        label = 'Mask',
+        weight = 50,
+        stack = false,
+        close = false,
+        buttons = {
+            {
+                label = 'Show/Hide Face',
+                action = function(slot)
+                    TriggerEvent('p_itemclothes/client/toggleFace')
+                end
+            },
+            {
+                label = 'Show/Hide Hair',
+                action = function(slot)
+                    TriggerEvent('p_itemclothes/client/toggleHair')
+                end
+            },
+        },
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_glasses'] = {
+        label = 'Glasses',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_vest'] = {
+        label = 'Vest',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_bag'] = {
+        label = 'Bag',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_watch'] = {
+        label = 'Watch',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_chain'] = {
+        label = 'Chain',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
+    ['clothes_bracelet'] = {
+        label = 'Bracelet',
+        weight = 50,
+        stack = false,
+        close = false,
+        consume = 0,
+        server = {
+            export = 'p_itemclothes.useClothingItem'
+        }
+    },
+
     ['pickaxe'] = {
     label = 'Pioche',
     weight = 5000,
