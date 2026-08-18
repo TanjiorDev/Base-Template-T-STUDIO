@@ -1,0 +1,1 @@
+import{r as e}from"./rolldown-runtime-hePW80VL.js";import{t}from"./react-CwJFpaho.js";var n=e(t(),1);function r(e,t=!0){let[r,i]=(0,n.useState)(()=>Math.max(0,Math.floor(e)));return(0,n.useEffect)(()=>{i(Math.max(0,Math.floor(e)))},[e]),(0,n.useEffect)(()=>{if(!t)return;let e=window.setInterval(()=>i(e=>e>0?e-1:0),1e3);return()=>window.clearInterval(e)},[t]),r}export{r as t};

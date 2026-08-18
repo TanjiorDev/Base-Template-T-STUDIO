@@ -1,0 +1,84 @@
+---@type table Boot reporter (server.boot): one console summary instead of per-module prints.
+local boot = require 'server.boot'
+
+---@type table sd-phone config root (configs/config.lua).
+local config  = require 'configs.config'
+---@type table Stocks persistence layer (server.stocks.store): schema bootstrap + price rows.
+local store   = require 'server.stocks.store'
+---@type table Shared price simulation (server.stocks.engine): tick, persist + broadcast payloads.
+local engine  = require 'server.stocks.engine'
+---@type table Authoritative trade handlers (server.stocks.actions): validation + money movement.
+local actions = require 'server.stocks.actions'
+---@type table Watcher registry (server.watchers): shared with the per-trade broadcast.
+local watchers = require('server.watchers').of('stocks')
+---@type table Shared server helpers (server.util): the configs/apps.lua switch.
+local util = require 'server.util'
+
+---@type boolean Whether Stocks is switched on in configs/apps.lua. A disabled app keeps its schema
+---and its stored prices, but stops simulating a market nobody can open.
+local APP_ENABLED = util.appEnabled('stocks')
+
+---@type table Stocks config (config.Stocks): tick + save cadence.
+local ST = config.Stocks
+
+-- NUI-facing callbacks: thin delegates into server.stocks.actions.
+lib.callback.register('sd-phone:server:stocks:market',   function(src)          return actions.market(src)             end)
+lib.callback.register('sd-phone:server:stocks:deposit',  function(src, payload) return actions.deposit(src, payload)   end)
+lib.callback.register('sd-phone:server:stocks:withdraw', function(src, payload) return actions.withdraw(src, payload)  end)
+lib.callback.register('sd-phone:server:stocks:buy',      function(src, payload) return actions.buy(src, payload)       end)
+lib.callback.register('sd-phone:server:stocks:sell',     function(src, payload) return actions.sell(src, payload)      end)
+lib.callback.register('sd-phone:server:stocks:holders',  function(src, payload) return actions.holders(src, payload)   end)
+
+---Subscribes or unsubscribes the caller to the per-tick price push while the app is open.
+---@param src number
+---@param payload table { on: boolean }
+lib.callback.register('sd-phone:server:stocks:watch', function(src, payload)
+    payload = type(payload) == 'table' and payload or {}
+    watchers.watch(src, payload.on == true)
+    return { success = true }
+end)
+
+---Drops a departing watcher's entry.
+AddEventHandler('playerDropped', function()
+    watchers.drop(source)
+end)
+
+-- Boot then heartbeat: creates the schema, seeds prices, then ticks the market every
+-- ST.TickSeconds, pushing the light tick payload to players with Stocks open.
+CreateThread(function()
+    local ok, err = pcall(store.ensureSchema)
+    if not ok then
+        boot.schemaFailed('stocks', err)
+        return
+    end
+    engine.init()
+    boot.schemaReady()
+    if not APP_ENABLED then return end
+
+    while true do
+        Wait((ST.TickSeconds or 5) * 1000)
+        engine.tick()
+        if watchers.any() then
+            watchers.push('sd-phone:client:stocks:prices', { assets = engine.ticks() })
+        end
+    end
+end)
+
+-- Batched persistence: saves the market every ST.SaveSeconds. Nothing moves while the app is off,
+-- so there is nothing to write.
+CreateThread(function()
+    if not APP_ENABLED then return end
+
+    while true do
+        Wait((ST.SaveSeconds or 30) * 1000)
+        local ok, err = pcall(function() store.savePrices(engine.persistRows()) end)
+        if not ok then print(('^1[sd-phone:stocks]^0 price save failed: %s'):format(err)) end
+    end
+end)
+
+---Flushes the live prices once on resource stop. Guarded to this resource only.
+---@param resource string name of the resource that stopped
+AddEventHandler('onResourceStop', function(resource)
+    if resource ~= GetCurrentResourceName() then return end
+    pcall(function() store.savePrices(engine.persistRows()) end)
+end)

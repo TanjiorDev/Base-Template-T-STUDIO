@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu d'Animations KZB</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+</head>
+<body style="display: none;">
+    <div id="app">
+        <div id="sidebar">
+            <div class="cat-btn active" data-cat="Emotes" data-tooltip="Animations Normales"><i class="fa-solid fa-user"></i></div>
+            <div class="cat-btn" data-cat="Props" data-tooltip="Objets (Props)"><i class="fa-solid fa-box-open"></i></div>
+            <div class="cat-btn" data-cat="Dances" data-tooltip="Danses & Gangs"><i class="fa-solid fa-music"></i></div>
+            <div class="cat-btn" data-cat="Expressions" data-tooltip="Humeurs & Visages"><i class="fa-solid fa-masks-theater"></i></div>
+            <div class="cat-btn" data-cat="Shared" data-tooltip="Animations à deux"><i class="fa-solid fa-users"></i></div>
+            <div class="cat-btn" data-cat="Walks" data-tooltip="Styles de démarche"><i class="fa-solid fa-person-walking"></i></div>
+            
+            <div class="cat-btn" data-cat="Favorites" data-tooltip="Mes Favoris" style="margin-top: auto;"><i class="fa-solid fa-star"></i></div>
+        </div>
+
+        <div id="main-content">
+            <div class="header-banner">
+                <div class="header-top-text">ANIMATIONS RP</div>
+                <div class="header-title">MENU D'ANIMATIONS</div>
+                <div class="header-subtitle">Parcourez les animations, objets et danses.</div>
+            </div>
+
+            <div class="search-container">
+                <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" id="search-bar" placeholder="Rechercher une animation...">
+            </div>
+
+            <div id="emotes-list">
+                </div>
+
+            <div class="bottom-actions">
+                <button class="btn-cancel" onclick="cancelEmote()">Annuler l'animation<br>en cours</button>
+                <button class="btn-reset" onclick="resetPreview()">Réinitialiser<br>l'aperçu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="context-menu" class="hidden">
+        <div class="context-item" id="ctx-play"><i class="fa-solid fa-play"></i> Jouer l'animation</div>
+        <div class="context-item" id="ctx-preview"><i class="fa-solid fa-eye"></i> Aperçu (Clone)</div>
+        <div class="context-item" id="ctx-place"><i class="fa-solid fa-location-dot"></i> Placer l'animation</div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
