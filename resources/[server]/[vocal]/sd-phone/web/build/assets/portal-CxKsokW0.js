@@ -1,0 +1,1 @@
+import{r as e}from"./rolldown-runtime-hePW80VL.js";import{t}from"./react-CwJFpaho.js";import{t as n}from"./react-dom-Dl-LT-t1.js";var r=e(t(),1),i=n();function a(e){let t=typeof document<`u`?document.querySelector(`[data-phone-screen]`):null;return t?(0,i.createPortal)((0,r.createElement)(`div`,{"data-motion-app":`1`,style:{display:`contents`}},e),t):e}export{a as t};

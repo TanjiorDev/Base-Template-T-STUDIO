@@ -1,0 +1,1 @@
+import{r as e,t}from"./nui-DxdNkJci.js";import{t as n}from"./data-BKcCZU8M.js";async function r(){if(!e)return n;let r=await t(`sd-phone:garages:list`);return r?.success&&Array.isArray(r.data)?r.data:[]}export{r as fetchVehicles};

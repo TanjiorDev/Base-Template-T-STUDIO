@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container" style="display:none;">
+        <div class="header">
+            <div>⛽</div>
+            <div>
+                <p class="subtitle">Ravitaillement</p>
+                <div class="title">STATION-SERVICE</div>
+            </div>
+            <div class="quit-box">Quitter ESC</div>
+        </div>
+        <div class="info-row"><span>Morningwood</span></div>
+        <div class="info-row"><span>Niveau actuel</span><span id="currentFuel" class="fuel-amt">0 / 100 L</span></div>
+        <div class="info-row"><span>Quantité à ajouter</span><span id="displayAmt" class="fuel-amt">1 L</span></div>
+        <div class="slider-container">
+            <input type="range" id="fuelSlider" min="0" max="35" value="1">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#666;">
+                <span>0</span><span>35</span>
+            </div>
+        </div>
+        <div class="total-box">
+            <span>Total</span>
+            <span id="displayPrice" class="price-tag">$ 2</span>
+        </div>
+        <div style="margin-bottom:15px;">Espèces : $ 4 880</div>
+        <div class="actions">
+            <button class="btn-cancel" onclick="closeMenu()">Annuler</button>
+            <button class="btn-confirm" onclick="confirmFuel()">Confirmer</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

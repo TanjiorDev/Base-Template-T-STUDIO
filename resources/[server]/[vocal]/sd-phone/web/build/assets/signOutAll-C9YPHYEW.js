@@ -1,0 +1,1 @@
+import{Y as e,j as t,tt as n,yn as r}from"./index-CiFYf8Ur.js";async function i(t){let{signedOut:i}=await e(t);return n([t]),r(`${t}:`),i}async function a(){let{signedOut:i}=await e();n(t);for(let e of t)r(`${e}:`);return i}export{a as n,i as t};

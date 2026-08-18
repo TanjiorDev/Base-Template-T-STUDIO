@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloodLeak Garage</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="style.css?v=999">
+</head>
+<body>
+    <div id="garage-app" class="hidden">
+        <!-- 2026 High-End Split Dashboard -->
+        <div class="dashboard-container">
+            
+            <!-- LEFT PANEL: VEHICLE SELECTION LIST -->
+            <div class="left-panel">
+                <div class="panel-header">
+                    <div class="header-main">
+                        <i class="fa-solid fa-warehouse header-icon"></i>
+                        <div>
+                            <h1 id="garage-title">GARAGE CENTRAL</h1>
+                            <p class="subtitle">GESTION DU PARC AUTOMOBILE</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-gears admin-toggle-btn hidden" id="admin-toggle-btn" title="Configuration Admin"></i>
+                        <span class="header-badge" id="garage-type-badge">VOITURES</span>
+                    </div>
+                </div>
+
+                <!-- Search Input -->
+                <div class="search-section">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Rechercher par modèle ou plaque...">
+                </div>
+
+                <!-- List of Vehicles -->
+                <div class="vehicle-list" id="vehicle-list-container">
+                    <!-- Dynamic vehicle rows go here -->
+                </div>
+
+                <!-- Footer Hint -->
+                <div class="panel-footer">
+                    <span><i class="fa-solid fa-keyboard"></i> [ECHAP] POUR FERMER</span>
+                    <span id="vehicle-count">0 VÉHICULES</span>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: DETAILED METRICS & ACTIONS -->
+            <div class="right-panel" id="details-panel">
+                <!-- Prompt when no vehicle is selected -->
+                <div class="empty-prompt" id="empty-prompt">
+                    <i class="fa-solid fa-chart-simple prompt-icon"></i>
+                    <h2>EXAMEN DU VÉHICULE</h2>
+                    <p>Sélectionnez un véhicule dans la liste pour afficher ses statistiques et le sortir du garage.</p>
+                </div>
+
+                <!-- Dynamic Detail Layout (hidden by default) -->
+                <div class="details-content hidden" id="details-content">
+                    <div class="details-header">
+                        <div>
+                            <h2 id="detail-name">ZENTORNO</h2>
+                            <p class="detail-plate-sub">PLAQUE: <span id="detail-plate">BLOOD99</span></p>
+                        </div>
+                        <span class="status-badge" id="detail-status">RANGÉ</span>
+                    </div>
+
+                    <!-- Visual Car Graphic Outline -->
+                    <div class="vehicle-preview">
+                        <i class="fa-solid fa-car-side preview-car-icon"></i>
+                        <img id="preview-vehicle-img" class="preview-vehicle-img hidden" src="" alt="preview" onerror="this.classList.add('hidden'); document.querySelector('.preview-car-icon').classList.remove('hidden');">
+                        <div class="preview-glow"></div>
+                    </div>
+
+                    <!-- Telemetry Stats Grid -->
+                    <div class="stats-grid">
+                        <!-- Stat Card: Engine -->
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span><i class="fa-solid fa-microchip"></i> MOTEUR</span>
+                                <span class="stat-value" id="stat-engine-val">100%</span>
+                            </div>
+                            <div class="stat-progress-bar">
+                                <div class="progress-fill" id="stat-engine-bar" style="width: 100%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Stat Card: Fuel -->
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span><i class="fa-solid fa-gas-pump"></i> CARBURANT</span>
+                                <span class="stat-value" id="stat-fuel-val">85%</span>
+                            </div>
+                            <div class="stat-progress-bar">
+                                <div class="progress-fill" id="stat-fuel-bar" style="width: 85%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Stat Card: Body -->
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span><i class="fa-solid fa-shield-halved"></i> CARROSSERIE</span>
+                                <span class="stat-value" id="stat-body-val">95%</span>
+                            </div>
+                            <div class="stat-progress-bar">
+                                <div class="progress-fill" id="stat-body-bar" style="width: 95%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Big Action Spawner Button -->
+                    <div class="action-section" id="action-container">
+                        <button class="action-btn" id="action-spawn-btn">
+                            <i class="fa-solid fa-key"></i> SORTIR LE VÉHICULE
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN PANEL: VOLCANIC GLASSMORPHISM CONFIGURATION OVERLAY -->
+            <div class="admin-panel hidden" id="admin-panel">
+                <div class="admin-header">
+                    <h2><i class="fa-solid fa-screwdriver-wrench"></i> CONFIGURATION GARAGES & FOURRIÈRES</h2>
+                    <span class="admin-close-btn" id="admin-close-btn"><i class="fa-solid fa-xmark"></i></span>
+                </div>
+
+                <div class="admin-body">
+                    <!-- Sélection de la Fourrière -->
+                    <div class="admin-field-group">
+                        <label for="admin-impound-select">SÉLECTIONNER LE POINT DE CONFIGURATION</label>
+                        <select id="admin-impound-select" class="admin-select">
+                            <!-- Rempli dynamiquement -->
+                        </select>
+                    </div>
+
+                    <!-- Nom de la Fourrière -->
+                    <div class="admin-field-group">
+                        <label for="admin-label-input">NOM DU POINT</label>
+                        <input type="text" id="admin-label-input" class="admin-input" placeholder="Ex: Fourrière Davis">
+                    </div>
+
+                    <!-- Type de Point -->
+                    <div class="admin-field-group">
+                        <label for="admin-type-select">TYPE DE POINT</label>
+                        <select id="admin-type-select" class="admin-select">
+                            <option value="car">Garage Voitures (car)</option>
+                            <option value="boat">Garage Bateaux (boat)</option>
+                            <option value="air">Garage Aéronefs (air)</option>
+                            <option value="helicopter">Garage Hélicoptères (helicopter)</option>
+                            <option value="impound">Fourrière Voitures (impound)</option>
+                            <option value="impound_boat">Fourrière Bateaux (impound_boat)</option>
+                            <option value="impound_air">Fourrière Aéronefs (impound_air)</option>
+                            <option value="impound_helicopter">Fourrière Hélicoptères (impound_helicopter)</option>
+                        </select>
+                    </div>
+
+                    <!-- Modèle du PNJ -->
+                    <div class="admin-field-group">
+                        <label for="admin-ped-select">MODÈLE DU PNJ (GARAGISTE)</label>
+                        <select id="admin-ped-select" class="admin-select">
+                            <option value="s_m_y_xmech_01">Mécanicien (s_m_y_xmech_01)</option>
+                            <option value="s_m_y_valet_01">Valet (s_m_y_valet_01)</option>
+                            <option value="s_m_m_dockwork_01">Docker (s_m_m_dockwork_01)</option>
+                            <option value="s_m_y_garbage">Éboueur (s_m_y_garbage)</option>
+                            <option value="ig_benny">Benny (ig_benny)</option>
+                        </select>
+                    </div>
+
+                    <!-- Icône du Blip -->
+                    <div class="admin-field-group">
+                        <label for="admin-blip-sprite">ICÔNE DU BLIP (CARTE)</label>
+                        <select id="admin-blip-sprite" class="admin-select">
+                            <option value="357">Standard Garage (357)</option>
+                            <option value="68">Fourrière / Impound (68)</option>
+                            <option value="427">Bateau / Boat (427)</option>
+                            <option value="307">Avion / Airfield (307)</option>
+                            <option value="43">Hélicoptère (43)</option>
+                            <option value="40">Maison / Propriété (40)</option>
+                            <option value="134">Clé (134)</option>
+                            <option value="616">Étoile Premium (616)</option>
+                        </select>
+                    </div>
+
+                    <!-- Couleur du Blip -->
+                    <div class="admin-field-group">
+                        <label for="admin-blip-color">COULEUR DU BLIP</label>
+                        <select id="admin-blip-color" class="admin-select">
+                            <option value="3">Bleu Indigo (3)</option>
+                            <option value="1">Rouge Sport (1)</option>
+                            <option value="2">Vert Émeraude (2)</option>
+                            <option value="5">Jaune Ambré (5)</option>
+                            <option value="8">Rose Fuchsia (8)</option>
+                            <option value="27">Violet Sombre (27)</option>
+                            <option value="4">Blanc Pur (4)</option>
+                            <option value="39">Gris Graphite (39)</option>
+                        </select>
+                    </div>
+
+                    <!-- Coordonnées d'Entrée (PNJ) -->
+                    <div class="admin-coords-section">
+                        <div class="coords-title">
+                            <span><i class="fa-solid fa-user-tie"></i> POSITION PNJ (ENTRÉE)</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button class="acquire-btn" id="acquire-ped-btn" title="Prendre ma position actuelle instantanément"><i class="fa-solid fa-location-arrow"></i> MA POS</button>
+                                <button class="acquire-btn" id="select-ped-btn" title="Choisir l'emplacement précis sur place"><i class="fa-solid fa-crosshairs"></i> SUR PLACE</button>
+                            </div>
+                        </div>
+                        <div class="coords-inputs">
+                            <div class="coord-val"><span>X:</span><input type="number" step="any" id="coord-ped-x" class="coord-input" value="0.0"></div>
+                            <div class="coord-val"><span>Y:</span><input type="number" step="any" id="coord-ped-y" class="coord-input" value="0.0"></div>
+                            <div class="coord-val"><span>Z:</span><input type="number" step="any" id="coord-ped-z" class="coord-input" value="0.0"></div>
+                            <div class="coord-val"><span>H:</span><input type="number" step="any" id="coord-ped-h" class="coord-input" value="0.0"></div>
+                        </div>
+                    </div>
+
+                    <!-- Coordonnées de Spawn (Véhicules Multiples) -->
+                    <div class="admin-coords-section">
+                        <div class="coords-title">
+                            <span><i class="fa-solid fa-car"></i> POINTS DE SORTIE (SPAWN)</span>
+                            <button class="acquire-btn" id="add-spawn-btn" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.25); color: var(--success);" title="Ajouter un nouveau point de sortie"><i class="fa-solid fa-plus"></i> AJOUTER</button>
+                        </div>
+                        <div id="admin-spawn-points-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 220px; overflow-y: auto; padding-right: 4px;">
+                            <!-- Les lignes de spawn seront générées dynamiquement -->
+                        </div>
+                    </div>
+
+                    <!-- Coordonnées de Rangement (Véhicule) -->
+                    <div class="admin-coords-section" id="admin-delete-coords-section">
+                        <div class="coords-title">
+                            <span><i class="fa-solid fa-square-parking"></i> POINT DE RANGEMENT (ENTRÉE)</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button class="acquire-btn" id="acquire-delete-btn" title="Prendre ma position actuelle instantanément"><i class="fa-solid fa-location-arrow"></i> MA POS</button>
+                                <button class="acquire-btn" id="select-delete-btn" title="Choisir l'emplacement précis sur place"><i class="fa-solid fa-crosshairs"></i> SUR PLACE</button>
+                            </div>
+                        </div>
+                        <div class="coords-inputs" style="grid-template-columns: repeat(3, 1fr);">
+                            <div class="coord-val"><span>X:</span><input type="number" step="any" id="coord-delete-x" class="coord-input" value="0.0"></div>
+                            <div class="coord-val"><span>Y:</span><input type="number" step="any" id="coord-delete-y" class="coord-input" value="0.0"></div>
+                            <div class="coord-val"><span>Z:</span><input type="number" step="any" id="coord-delete-z" class="coord-input" value="0.0"></div>
+                        </div>
+                    </div>
+
+                    <!-- Option Taille du Point de Rangement -->
+                    <div class="admin-field-group" id="admin-delete-size-section">
+                        <label for="admin-delete-size">TAILLE DE LA ZONE DE RANGEMENT</label>
+                        <select id="admin-delete-size" class="admin-select">
+                            <option value="3.0">Petite (3 mètres)</option>
+                            <option value="7.0">Standard (7 mètres)</option>
+                            <option value="12.0">Grande (12 mètres)</option>
+                            <option value="18.0">Très Grande (18 mètres)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin-footer" style="display: flex; gap: 10px;">
+                    <button class="admin-action-btn delete-btn hidden" id="admin-delete-btn" style="background: linear-gradient(135deg, #7f1d1d, #b91c1c); flex: 1;">
+                        <i class="fa-solid fa-trash-can"></i> SUPPRIMER
+                    </button>
+                    <button class="admin-action-btn save-btn" id="admin-save-btn" style="flex: 2;">
+                        <i class="fa-solid fa-floppy-disk"></i> ENREGISTRER CONFIGURATION
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Premium Volcanic Selection Overlay HUD Card -->
+    <div id="selection-overlay" class="hidden">
+        <div class="selection-card">
+            <div class="selection-header">
+                <i class="fa-solid fa-crosshairs selection-icon"></i>
+                <div class="selection-header-text">
+                    <h2 id="selection-title">SÉLECTION DE POSITION</h2>
+                    <p id="selection-subtitle">Placement d'un point sur la carte</p>
+                </div>
+            </div>
+            <div class="selection-divider"></div>
+            <div class="selection-body">
+                <div class="selection-instruction">
+                    <span class="key-badge">E</span>
+                    <span class="instruction-text">Valider la position</span>
+                </div>
+                <div class="selection-instruction">
+                    <span class="key-badge cancel">RETOUR</span>
+                    <span class="instruction-text">Annuler la sélection</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Logic Script -->
+    <script src="script.js?v=999"></script>
+</body>
+</html>

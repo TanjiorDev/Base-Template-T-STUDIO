@@ -1,0 +1,929 @@
+---@type table sd-phone config root (configs/config.lua).
+local config = require 'configs.config'
+---@type table Framework detection (bridge.shared.framework): name ('qb'|'esx') + live core handle.
+local framework = require 'bridge.shared.framework'
+---@type table Player bridge (bridge.server.player): identifier/name lookups from a trusted source.
+local player = require 'bridge.server.player'
+
+---@type table Housing bridge module; the table returned at end of file. Abstracts the supported
+---housing systems behind one normalised property list plus capability-gated actions (lock / key
+---list / key management).
+local housing = {}
+
+---@type table Homes config (configs/housing.lua): Enabled flag + System override + Resources
+---detection list.
+local H = config.Housing or { Enabled = false }
+
+---Resolve which supported housing system is running: an explicit config override wins, else the
+---first resource in H.Resources that reports `started`.
+---@return string|nil name active system's resource name, nil when none is running
+local function detectSystem()
+    if H.System and H.System ~= 'auto' then return H.System end
+    for _, name in ipairs(H.Resources or {}) do
+        if GetResourceState(name) == 'started' then return name end
+    end
+    return nil
+end
+
+---@type string|nil Active housing system's resource name, resolved once at load (nil = none).
+local ACTIVE = detectSystem()
+
+---Parameterised query; returns nil on error or a non-table result.
+---@param sql string parameterised SQL
+---@param params table bind parameters
+---@return table|nil rows result rows, nil on error or non-table result
+local function dbQuery(sql, params)
+    local ok, rows = pcall(function() return MySQL.query.await(sql, params) end)
+    if ok and type(rows) == 'table' then return rows end
+    return nil
+end
+
+---Decode a JSON column: tables pass through, JSON-looking strings are decoded, failures yield
+---nil.
+---@param raw any column value (table, JSON string, or anything else)
+---@return table|nil decoded
+local function decodeJson(raw)
+    if type(raw) == 'table' then return raw end
+    if type(raw) == 'string' and (lib.string.startsWith(raw, '{') or lib.string.startsWith(raw, '[')) then
+        local ok, d = pcall(json.decode, raw)
+        if ok and type(d) == 'table' then return d end
+    end
+    return nil
+end
+
+---@return number numeric coercion of v (0 when not numeric)
+local function num(v) return tonumber(v) or 0 end
+---@return boolean truthiness across the mixed flag encodings housing rows use (nil/false/0/'0' are false)
+local function truthy(v) return v ~= nil and v ~= 0 and v ~= false and v ~= '0' end
+---@return string|nil v when it's a non-empty string, else nil
+local function s(v) return (type(v) == 'string' and v ~= '') and v or nil end
+
+---Pull a flat { x, y } out of the coord shapes housing scripts use: a vector table, a JSON
+---string, or an array. Nil when neither x nor y can be found.
+---@param v any candidate coord value
+---@return { x: number, y: number }|nil
+local function asXY(v)
+    if type(v) == 'string' then v = decodeJson(v) end
+    if type(v) ~= 'table' then return nil end
+    local x = v.x or v[1]
+    local y = v.y or v[2]
+    if x and y then return { x = num(x), y = num(y) } end
+    return nil
+end
+
+---Try several field names on a row/object and return the first that yields XY.
+---@param row any DB row or export record
+---@param ... string candidate field names, in preference order
+---@return { x: number, y: number }|nil
+local function coordsFrom(row, ...)
+    if type(row) ~= 'table' then return nil end
+    for _, k in ipairs({ ... }) do
+        local xy = asXY(row[k])
+        if xy then return xy end
+    end
+    return nil
+end
+
+---Coerce a client-echoed property id to a number when numeric, else return it unchanged.
+---@param id any client-echoed property id
+---@return any id a number when numeric, else unchanged
+local function pid(id) return tonumber(id) or id end
+
+---Resolve an offline player's character name from the framework DB by citizenid.
+---Returns nil when no row is found or the name cannot be extracted.
+---@param cid string citizenid to look up
+---@return string|nil name or nil
+local function offlineName(cid)
+    if framework.name == 'esx' then
+        local ok, rows = pcall(function()
+            return MySQL.query.await(
+                'SELECT firstname, lastname FROM users WHERE identifier = ? LIMIT 1', { cid }
+            )
+        end)
+        if ok and rows and rows[1] then
+            local r = rows[1]
+            local first = s(r.firstname)
+            local last  = s(r.lastname)
+            if first or last then return (first or '') .. ' ' .. (last or '') end
+        end
+    else
+        local ok, rows = pcall(function()
+            return MySQL.query.await(
+                'SELECT charinfo FROM players WHERE citizenid = ? LIMIT 1', { cid }
+            )
+        end)
+        if ok and rows and rows[1] then
+            local ci = decodeJson(rows[1].charinfo)
+            if ci then
+                local first = s(ci.firstname)
+                local last  = s(ci.lastname)
+                if first or last then return (first or '') .. ' ' .. (last or '') end
+            end
+        end
+    end
+    return nil
+end
+
+---Map an array of citizenids (or { citizenid = ... } objects) to the app's { id, name } holder
+---shape, resolving online players to a friendly name, querying the DB for offline players, and
+---defaulting to 'Unknown Resident' only when the DB lookup also fails.
+---@param list any candidate holder array
+---@return table[] holders { id = citizenid, name }
+local function resolveCids(list)
+    if type(list) ~= 'table' then return {} end
+    local online = player.onlineCidMap()
+    local out = {}
+    for _, v in pairs(list) do
+        local cid = type(v) == 'table' and (v.citizenid or v.identifier or v.cid or v.id) or v
+        if cid ~= nil and cid ~= '' then
+            cid = tostring(cid)
+            local osrc = online[cid]
+            local name
+            if osrc then
+                name = player.getName(osrc)
+            elseif type(v) == 'table' and s(v.name) then
+                name = s(v.name)
+            else
+                name = offlineName(cid) or 'Unknown Resident'
+            end
+            out[#out + 1] = { id = cid, name = name }
+        end
+    end
+    return out
+end
+
+---Build a normalised Home with safe defaults, matching the React `Home` shape (id, address,
+---type, area, value, status, coords?, locked?). The id is stringified.
+---@param o table raw field bag from an adapter
+---@return table home normalised property record
+local function home(o)
+    return {
+        id      = tostring(o.id or o.address or ''),
+        address = o.address or 'Property',
+        type    = o.type or 'Property',
+        area    = o.area or '',
+        value   = num(o.value),
+        status  = o.status == 'rented' and 'rented' or 'owned',
+        coords  = o.coords or nil,
+        locked  = o.locked,
+    }
+end
+
+---Run an owner-gated action on the caller's client via the 'sd-phone:client:housing:exec'
+---callback; nil when the client callback errors. Client twin: bridge/client/housing.lua.
+---@param src number caller server id (the property owner using the app)
+---@param action string 'lock' | 'give' | 'remove' | 'keyHolders'
+---@param ... any action arguments, forwarded verbatim
+---@return any result client-side result, nil on error
+local function clientExec(src, action, ...)
+    local args = { ... }
+    local ok, res = pcall(function()
+        return lib.callback.await('sd-phone:client:housing:exec', src, ACTIVE, action, table.unpack(args))
+    end)
+    if ok then return res end
+    return nil
+end
+
+-- Per-system adapters, keyed by resource name: (source, id) -> Home[]. Sources per system:
+--   ps-housing   DB `properties` (owner_citizenid, street, region, apartment, price, door_data) - open source
+--   qs-housing   DB `player_houses` joined to `houselocations` (owner, rented, label, price, coords, keyholders)
+--   vms_housing  export GetProperty(id).metadata.enter | DB `houses`; keys via vms_housing:sv:giveKey/removeKey
+--   rtx_housing  export GetPlayerOwnedProperties / GetPropertyData(.enter.coords) / Get|SetPropertyLockStatus
+--   bcs_housing  export GetOwnedHomes / GetHome(.properties.entry) / LockHome / isLocked / Add|RemoveKeyHolder / GetKeyHolders
+--   tk_housing   export getPropertiesByIdentifier (list only - no coords/lock/keys public)
+--   RxHousing   export GetOwnedProperties / GetProperty / AddKeyholder / RemoveKeyholder / GetPropertyKeyholders
+--   loaf_housing export GetPlayerHouses | DB `loaf_houses`.entrance (coords only; keys need an undocumented keyId)
+--   origen_housing exports getPlayerHouses(.entryCoords) / toggleDoor / getHouseDoor / addKeyHolder / removeKeyHolder
+---@type table<string, fun(source: number, id: string): table[]> Per-system property-list adapters.
+local ADAPTERS = {}
+
+---ps-housing: single `properties` table, no rental concept; entrance coords from the door_data
+---JSON.
+---@param _source number caller server id (unused - the table keys by citizenid)
+---@param id string caller citizenid
+---@return table[] homes
+ADAPTERS['ps-housing'] = function(_source, id)
+    local rows = dbQuery('SELECT * FROM `properties` WHERE `owner_citizenid` = ?', { id })
+    if not rows then return {} end
+    local out = {}
+    for _, r in ipairs(rows) do
+        local apt = s(r.apartment)
+        out[#out + 1] = home{
+            id      = r.property_id or r.id,
+            address = s(r.street) or s(r.description),
+            type    = apt and 'Apartment' or 'House',
+            area    = s(r.region),
+            value   = r.price,
+            status  = 'owned',
+            coords  = coordsFrom(r, 'door_data'),
+        }
+    end
+    return out
+end
+
+---qs-housing: ownership/rental in `player_houses`, label/price/coords/keyholders from the joined
+---`houselocations`; falls back to the ownership table alone when the join fails.
+---@param _source number caller server id (unused - the table keys by owner identifier)
+---@param id string caller identifier
+---@return table[] homes
+ADAPTERS['qs-housing'] = function(_source, id)
+    local rows = dbQuery([[
+        SELECT ph.*, hl.label AS hl_label, hl.name AS hl_name, hl.price AS hl_price, hl.coords AS hl_coords
+        FROM `player_houses` ph
+        LEFT JOIN `houselocations` hl ON hl.name = ph.house
+        WHERE ph.owner = ?
+    ]], { id }) or dbQuery('SELECT * FROM `player_houses` WHERE `owner` = ?', { id })
+    if not rows then return {} end
+    local out = {}
+    for _, r in ipairs(rows) do
+        out[#out + 1] = home{
+            id      = r.id or r.house,
+            address = s(r.hl_label) or s(r.hl_name) or s(r.house) or s(r.label),
+            type    = 'Property',
+            area    = s(r.zone) or s(r.region),
+            value   = r.hl_price or r.price,
+            status  = truthy(r.rented) and 'rented' or 'owned',
+            coords  = coordsFrom(r, 'hl_coords', 'coords'),
+        }
+    end
+    return out
+end
+
+---vms_housing: single `houses` table; `owner` owns, `renter` rents, with an owner-only fallback
+---query. Entrance coords from `metadata.enter`.
+---@param _source number caller server id (unused - the table keys by identifier)
+---@param id string caller identifier
+---@return table[] homes
+ADAPTERS['vms_housing'] = function(_source, id)
+    local rows = dbQuery('SELECT * FROM `houses` WHERE `owner` = ? OR `renter` = ?', { id, id })
+                 or dbQuery('SELECT * FROM `houses` WHERE `owner` = ?', { id })
+    if not rows then return {} end
+    local out = {}
+    for _, r in ipairs(rows) do
+        local meta = decodeJson(r.metadata)
+        out[#out + 1] = home{
+            id      = r.id,
+            address = s(r.address) or s(r.name),
+            type    = s(r.type),
+            area    = s(r.region),
+            value   = r.price or (meta and (meta.price or meta.value)),
+            status  = (s(r.renter) == id) and 'rented' or 'owned',
+            coords  = (meta and (asXY(meta.enter) or asXY(meta.coords))) or coordsFrom(r, 'enter', 'coords'),
+        }
+    end
+    return out
+end
+
+---rtx_housing - documented export first, DB `houses` as fallback. Entrance coords come from
+---`.enter.coords`; live lock state is read per home via GetPropertyLockStatus.
+---@param source number caller server id (the export keys on it)
+---@param id string caller identifier (DB fallback)
+---@return table[] homes
+ADAPTERS['rtx_housing'] = function(source, id)
+    local props
+    local ok, res = pcall(function() return exports['rtx_housing']:GetPlayerOwnedProperties(source) end)
+    if ok and type(res) == 'table' then props = res end
+    if not props then props = dbQuery('SELECT * FROM `houses` WHERE `owneridentifier` = ?', { id }) end
+    if not props then return {} end
+    local out = {}
+    for _, r in pairs(props) do
+        local hid    = r.id or r.adress or r.address
+        local enter  = r.enter
+        local coords = (type(enter) == 'table' and (asXY(enter.coords) or asXY(enter))) or coordsFrom(r, 'coords')
+        local locked
+        local okl, lk = pcall(function() return exports['rtx_housing']:GetPropertyLockStatus(hid) end)
+        if okl and type(lk) == 'boolean' then locked = lk end
+        out[#out + 1] = home{
+            id      = hid,
+            address = s(r.adress) or s(r.address) or s(r.label),
+            type    = s(r.housetype) or s(r.type) or 'House',
+            area    = s(r.region) or s(r.area),
+            value   = r.houseprice or r.price,
+            status  = truthy(r.rented) and 'rented' or 'owned',
+            coords  = coords,
+            locked  = locked,
+        }
+    end
+    return out
+end
+
+---bcs_housing - documented exports for owned homes; entrance coords + lock state come from
+---GetHome(homeId)/isLocked per home.
+---@param _source number caller server id (unused - the exports key by identifier)
+---@param id string caller identifier
+---@return table[] homes
+ADAPTERS['bcs_housing'] = function(_source, id)
+    local props
+    local ok, res = pcall(function() return exports.bcs_housing:GetOwnedHomes(id) end)
+    if ok and type(res) == 'table' then props = res end
+    if not props then return {} end
+    local out = {}
+    for _, h in pairs(props) do
+        local hid = h.identifier or h.id
+        local coords, locked
+        local okh, full = pcall(function() return exports.bcs_housing:GetHome(hid) end)
+        if okh and type(full) == 'table' and type(full.properties) == 'table' then
+            coords = asXY(full.properties.entry)
+                or (type(full.properties.data) == 'table' and type(full.properties.data.flat) == 'table' and asXY(full.properties.data.flat.coords))
+        end
+        local okl, lk = pcall(function() return exports.bcs_housing:isLocked(hid) end)
+        if okl and type(lk) == 'boolean' then locked = lk end
+        out[#out + 1] = home{
+            id      = hid,
+            address = s(h.name) or s(h.label),
+            type    = s(h.type),
+            area    = s(h.complex),
+            value   = h.price,
+            status  = (h.payment == 'Rent') and 'rented' or 'owned',
+            coords  = coords,
+            locked  = locked,
+        }
+    end
+    return out
+end
+
+---tk_housing - documented export returns the identifier's properties (list only; no public
+---coords/lock/keys API).
+---@param _source number caller server id (unused - the export keys by identifier)
+---@param id string caller identifier
+---@return table[] homes
+ADAPTERS['tk_housing'] = function(_source, id)
+    local props
+    local ok, res = pcall(function() return exports.tk_housing:getPropertiesByIdentifier(id) end)
+    if ok and type(res) == 'table' then props = res end
+    if not props then return {} end
+    local out = {}
+    for _, p in pairs(props) do
+        out[#out + 1] = home{
+            id      = p.id,
+            address = s(p.address) or s(p.name),
+            type    = s(p.type),
+            value   = p.price,
+            status  = (s(p.owner) == id) and 'owned' or 'rented',
+        }
+    end
+    return out
+end
+
+---RxHousing: export namespace is `RxHousing`; coords probed across common field names.
+---@param _source number caller server id (unused - the export keys by identifier)
+---@param id string caller identifier
+---@return table[] homes
+ADAPTERS['RxHousing'] = function(_source, id)
+    local props
+    local ok, res = pcall(function() return exports['RxHousing']:GetOwnedProperties(id) end)
+    if ok and type(res) == 'table' then props = res end
+    if not props then return {} end
+    local out = {}
+    for _, p in pairs(props) do
+        out[#out + 1] = home{
+            id      = p.id or p.propertyId or p.label,
+            address = s(p.label) or s(p.address) or s(p.name),
+            type    = s(p.type) or s(p.propertyType),
+            area    = s(p.region) or s(p.area),
+            value   = p.price or p.value,
+            status  = 'owned',
+            coords  = coordsFrom(p, 'coords', 'enter', 'entrance', 'entryCoords', 'location'),
+        }
+    end
+    return out
+end
+
+---loaf_housing: export probe, tried with the server id then the identifier; entrance coords from
+---the row JSON when present.
+---@param source number caller server id
+---@param id string caller identifier
+---@return table[] homes
+ADAPTERS['loaf_housing'] = function(source, id)
+    local props
+    local ok, res = pcall(function() return exports['loaf_housing']:GetPlayerHouses(source) end)
+    if ok and type(res) == 'table' then props = res end
+    if not props then
+        local ok2, res2 = pcall(function() return exports['loaf_housing']:GetPlayerHouses(id) end)
+        if ok2 and type(res2) == 'table' then props = res2 end
+    end
+    if not props then return {} end
+    local out = {}
+    for _, p in pairs(props) do
+        out[#out + 1] = home{
+            id      = p.id or p.identifier or p.label,
+            address = s(p.label) or s(p.name) or s(p.address),
+            type    = s(p.type),
+            area    = s(p.zone) or s(p.region),
+            value   = p.price or p.value,
+            status  = 'owned',
+            coords  = coordsFrom(p, 'entrance', 'coords', 'location', 'enter'),
+        }
+    end
+    return out
+end
+
+---origen_housing - server exports, probed newest-name-first (GetPlayerProperties by source, then
+---GetOwnedProperties by identifier). Entrance coords from `entryCoords`/`location`.
+---@param source number caller server id
+---@param id string caller identifier
+---@return table[] homes
+ADAPTERS['origen_housing'] = function(source, id)
+    local props
+    for _, attempt in ipairs({
+        function() return exports['origen_housing']:GetPlayerProperties(source) end,
+        function() return exports['origen_housing']:GetOwnedProperties(id) end,
+    }) do
+        local ok, res = pcall(attempt)
+        if ok and type(res) == 'table' then props = res; break end
+    end
+    if not props then return {} end
+    local out = {}
+    for _, p in pairs(props) do
+        out[#out + 1] = home{
+            id      = p.id or p.identifier or p.label,
+            address = s(p.label) or s(p.name) or s(p.address) or s(p.street),
+            type    = s(p.type) or s(p.propertyType),
+            area    = s(p.region) or s(p.area) or s(p.zone),
+            value   = p.price or p.value,
+            status  = 'owned',
+            coords  = coordsFrom(p, 'entryCoords', 'location', 'coords', 'enter'),
+        }
+    end
+    return out
+end
+
+---LNS_Housing: reads the in-memory Properties table via the GetProperties export and filters to
+---properties owned by or where the calling player holds a key. Entrance coords come from
+---`metadata.entrance` (Shell/IPL) falling back to `metadata.doorCoords` (MLO, populated by
+---EnrichPropertyDoorlockData). Lock state from `metadata.locked`.
+---@param source number caller server id
+---@param id string caller citizenid
+---@return table[] homes
+ADAPTERS['LNS_Housing'] = function(source, id)
+    local ok, props = pcall(function() return exports.LNS_Housing:GetProperties() end)
+    if not ok or type(props) ~= 'table' then return {} end
+    local out = {}
+    for _, p in pairs(props) do
+        local isOwner = (p.owner == id)
+        local isKeyholder = false
+        if not isOwner and p.permissions and type(p.permissions.entry) == 'table' then
+            isKeyholder = lib.table.contains(p.permissions.entry, id)
+        end
+        if isOwner or isKeyholder then
+            local coords = nil
+            if p.metadata and p.metadata.entrance then
+                coords = asXY(p.metadata.entrance)
+            end
+            if not coords then
+                local doorId = p.door_id
+                if (not doorId or doorId == 0) and p.doors and #p.doors > 0 then
+                    doorId = p.doors[1]
+                end
+                if doorId and doorId ~= 0 then
+                    local okD, door = pcall(function() return exports.ox_doorlock:getDoor(doorId) end)
+                    if okD and door and door.coords then
+                        coords = asXY(door.coords)
+                    end
+                end
+            end
+            if not coords and p.zone_data and p.zone_data.points and #p.zone_data.points > 0 then
+                local sumX, sumY, sumZ, count = 0, 0, 0, #p.zone_data.points
+                for _, pt in ipairs(p.zone_data.points) do
+                    sumX = sumX + pt.x; sumY = sumY + pt.y; sumZ = sumZ + (pt.z or 0)
+                end
+                coords = asXY({ x = sumX / count, y = sumY / count, z = sumZ / count })
+            end
+            local area = ''
+            if coords then
+                local zone = clientExec(source, 'zone', coords)
+                if type(zone) == 'string' then area = zone end
+            end
+            out[#out + 1] = home{
+                id      = p.id,
+                address = s(p.label),
+                type    = 'House',
+                area    = area,
+                value   = p.price,
+                status  = isOwner and ((p.sale_type == 'rent') and 'rented' or 'owned') or 'rented',
+                coords  = coords,
+                locked  = (p.metadata ~= nil) and (p.metadata.locked == true) or nil,
+            }
+        end
+    end
+    return out
+end
+
+---nolag_properties: TeamsGG Properties. Uses documented server exports (GetAllProperties,
+---ToggleDoorlock, GetKeyHolders, AddKey, RemoveKey). Property list by owner citizenid.
+---@param source number caller server id
+---@param id string caller identifier (citizenid)
+---@return table[] homes
+ADAPTERS['nolag_properties'] = function(source, id)
+    local props
+    local ok, res = pcall(function() return exports.nolag_properties:GetAllProperties(id, 'user', true) end)
+    if ok and type(res) == 'table' then props = res end
+    if not props then return {} end
+    local out = {}
+    for _, p in pairs(props) do
+        local coords = asXY(p.coords)
+        local area = ''
+        if coords then
+            local zone = clientExec(source, 'zone', coords)
+            if type(zone) == 'string' then area = zone end
+        end
+        out[#out + 1] = home{
+            id      = p.id,
+            address = s(p.label),
+            type    = s(p.type),
+            area    = area,
+            value   = p.price,
+            status  = 'owned',
+            coords  = coords,
+            locked  = p.doorLocked,
+        }
+    end
+    return out
+end
+
+ADAPTERS['kartik-properties'] = function(source, id)
+    local ok, raw = pcall(function() return exports['kartik-properties']:GetPlayerHousingData(id) end)
+    if not ok or type(raw) ~= 'table' then return {} end
+    local out = {}
+    for _, p in ipairs(raw) do
+        local coords = asXY(p.coords)
+        local isOwner = (tostring(p.owner) == tostring(id))
+        out[#out + 1] = home{
+            id      = p.houseId,
+            address = s(p.label),
+            type    = isOwner and 'House' or 'Leased',
+            area    = '',
+            value   = 0,
+            status  = isOwner and 'owned' or 'rented',
+            coords  = coords,
+            locked  = p.locked,
+        }
+    end
+    return out
+end
+
+-- Capability map: which detail-view actions each system supports.
+---@type table<string, { lock: boolean, keyList: boolean, keyManage: boolean }> Per-system action support.
+local CAPS = {
+    ['bcs_housing']    = { lock = true,  keyList = true,  keyManage = true  },
+    ['ps-housing']     = { lock = false, keyList = true,  keyManage = true  },
+    ['rtx_housing']    = { lock = true,  keyList = false, keyManage = false },
+    ['tk_housing']     = { lock = false, keyList = false, keyManage = false },
+    ['origen_housing'] = { lock = true,  keyList = false, keyManage = true  },
+    ['RxHousing']      = { lock = false, keyList = true,  keyManage = true  },
+    ['qs-housing']     = { lock = false, keyList = true,  keyManage = false },
+    ['vms_housing']    = { lock = false, keyList = false, keyManage = true  },
+    ['loaf_housing']   = { lock = false, keyList = false, keyManage = false },
+    ['LNS_Housing']    = { lock = true,  keyList = true,  keyManage = true  },
+    ['nolag_properties'] = { lock = true,  keyList = true,  keyManage = true  },
+    ['kartik-properties'] = { lock = true,  keyList = true,  keyManage = true  },
+}
+
+---Capability flags for the active system, all-false when none is detected.
+---@return { lock: boolean, keyList: boolean, keyManage: boolean }
+local function caps() return CAPS[ACTIVE or ''] or { lock = false, keyList = false, keyManage = false } end
+
+---The first defined key name for a bcs home, defaulting to 'Resident' when none can be read.
+---@param id any property id
+---@return string keyName
+local function bcsDefaultKey(id)
+    local ok, keys = pcall(function() return exports.bcs_housing:GetKeyList(id) end)
+    if ok and type(keys) == 'table' then
+        for _, k in pairs(keys) do
+            if type(k) == 'table' then return k.name or k.key or k.label or 'Resident' end
+            if type(k) == 'string' then return k end
+        end
+    end
+    return 'Resident'
+end
+
+---Fire the app refresh event at the owner and, when resolvable, at the affected key holder.
+---@param src number owner server id
+---@param holderId any holder identifier (citizenid) or server id; nil to skip the second target
+local function refreshHomes(src, holderId)
+    TriggerClientEvent('sd-phone:client:homes:refresh', src)
+    if holderId == nil then return end
+    local targetSrc = tonumber(holderId)
+    if not targetSrc or targetSrc < 1 or targetSrc % 1 ~= 0 then
+        targetSrc = player.getSourceByIdentifier(tostring(holderId))
+    end
+    if targetSrc then
+        TriggerClientEvent('sd-phone:client:homes:refresh', targetSrc)
+    end
+end
+
+---Resource name of the detected housing system, or nil. Read-only.
+---@return string|nil
+function housing.activeSystem() return ACTIVE end
+
+---Capability flags for the detected system (the app hides unsupported actions). Read-only.
+---@return { lock: boolean, keyList: boolean, keyManage: boolean }
+function housing.capabilities()
+    local c = caps()
+    return { lock = c.lock, keyList = c.keyList, keyManage = c.keyManage }
+end
+
+---Normalised list of the caller's own properties via the active system's adapter. An adapter
+---failure degrades to an empty list with a console warning.
+---@param source number caller server id
+---@return table[] homes (empty when disabled / no character / unsupported system / adapter failure)
+function housing.list(source)
+    if not H.Enabled then return {} end
+    local id = player.getIdentifier(source)
+    if not id then return {} end
+
+    local adapter = ADAPTERS[ACTIVE or '']
+    if not adapter then return {} end
+
+    local ok, list = pcall(adapter, source, id)
+    if not ok or type(list) ~= 'table' then
+        print(('^1[sd-phone:housing]^0 adapter failed for `%s` — check the housing system / its exports'):format(ACTIVE or '?'))
+        return {}
+    end
+    return list
+end
+
+---Ownership gate: true only when the id matches a property in the caller's own normalised list,
+---resolved fresh from the active adapter. Ids compare as strings.
+---@param src number caller server id
+---@param id any client-echoed property id
+---@return boolean owns true only when the property is in the caller's own list
+local function ownsProperty(src, id)
+    if id == nil then return false end
+    local key = tostring(id)
+    for _, h in ipairs(housing.list(src)) do
+        if h.id == key then return true end
+    end
+    return false
+end
+
+---Set the front-door lock state. Ownership-gated. Returns the resulting locked boolean, or nil
+---when the active system has no lock API or the gate rejects.
+---@param src number  owner source
+---@param id any       property id (client-echoed)
+---@param want boolean desired locked state
+---@return boolean|nil
+function housing.lock(src, id, want)
+    if not caps().lock or not ownsProperty(src, id) then return nil end
+    want = want and true or false
+    local p = pid(id)
+    if ACTIVE == 'rtx_housing' then
+        pcall(function() exports['rtx_housing']:SetPropertyLockStatus(p, want) end)
+        refreshHomes(src)
+        return want
+    elseif ACTIVE == 'bcs_housing' then
+        local ok, cur = pcall(function() return exports.bcs_housing:isLocked(p) end)
+        if (ok and type(cur) == 'boolean' and cur ~= want) or not ok then
+            pcall(function() exports.bcs_housing:LockHome(p) end)
+        end
+        refreshHomes(src)
+        return want
+    elseif ACTIVE == 'origen_housing' then
+        local r = clientExec(src, 'lock', p, want)
+        if r == nil then return nil end
+        refreshHomes(src)
+        return r and true or false
+    elseif ACTIVE == 'LNS_Housing' then
+        local okPerm, allowed = pcall(function()
+            return exports.LNS_Housing:CheckPermission(src, 'house', p, 'manage')
+        end)
+        if not okPerm or not allowed then return nil end
+        local okProp, prop = pcall(function() return exports.LNS_Housing:GetProperty(p) end)
+        local cur = okProp and type(prop) == 'table' and prop.metadata and prop.metadata.locked
+        if cur ~= want then
+            local okT, newState = pcall(function() return exports.LNS_Housing:ToggleLock(p) end)
+            if okT and type(newState) == 'boolean' then
+                refreshHomes(src)
+                return newState
+            end
+        end
+        refreshHomes(src)
+        return want
+    elseif ACTIVE == 'nolag_properties' then
+        local okT, res = pcall(function() return exports.nolag_properties:ToggleDoorlock(src, p, want) end)
+        if okT and res then
+            refreshHomes(src)
+            return want
+        end
+    elseif ACTIVE == 'kartik-properties' then
+        local ok = pcall(function() exports['kartik-properties']:SetPropertyLocked(p, want) end)
+        if ok then
+            refreshHomes(src)
+            return want
+        end
+    end
+    return nil
+end
+
+---List the property's key holders as { id, name } records (id = citizenid). For most systems
+---this is ownership-gated. For LNS_Housing it is accessible to both owners and keyholders so
+---that a new keyholder added via the phone can see the full list (including the owner).
+---@param src number caller source
+---@param id any property id (client-echoed)\r
+---@return table[] holders (empty when unsupported or rejected)
+function housing.keyHolders(src, id)
+    if not caps().keyList then return {} end
+    local p = pid(id)
+    if ACTIVE == 'bcs_housing' then
+        if not ownsProperty(src, id) then return {} end
+        local ok, list = pcall(function() return exports.bcs_housing:GetKeyHolders(p) end)
+        if not ok or type(list) ~= 'table' then return {} end
+        local out = {}
+        for _, k in pairs(list) do
+            out[#out + 1] = { id = tostring(k.identifier or k.id or ''), name = s(k.name) or 'Resident' }
+        end
+        return out
+    elseif ACTIVE == 'RxHousing' then
+        if not ownsProperty(src, id) then return {} end
+        local ok, list = pcall(function() return exports['RxHousing']:GetPropertyKeyholders(p) end)
+        return ok and resolveCids(list) or {}
+    elseif ACTIVE == 'qs-housing' then
+        if not ownsProperty(src, id) then return {} end
+        local rows = dbQuery('SELECT `keyholders` FROM `player_houses` WHERE `id` = ? OR `house` = ?', { id, id })
+        local raw  = rows and rows[1] and rows[1].keyholders
+        return resolveCids(decodeJson(raw))
+    elseif ACTIVE == 'ps-housing' then
+        if not ownsProperty(src, id) then return {} end
+        local r = clientExec(src, 'keyHolders', p)
+        return type(r) == 'table' and r or {}
+    elseif ACTIVE == 'LNS_Housing' then
+        local okProp, prop = pcall(function() return exports.LNS_Housing:GetProperty(p) end)
+        if not okProp or type(prop) ~= 'table' then return {} end
+
+        local callerCid = player.getIdentifier(src)
+        if not callerCid then return {} end
+
+        local isOwner  = (prop.owner == callerCid)
+        local isHolder = false
+        if not isOwner and prop.permissions and type(prop.permissions.entry) == 'table' then
+            isHolder = lib.table.contains(prop.permissions.entry, callerCid)
+        end
+        if not isOwner and not isHolder then return {} end
+
+        local out = {}
+        if prop.owner and prop.owner ~= '' then
+            local ownerOnline = player.onlineCidMap()[prop.owner]
+            local ownerName
+            if ownerOnline then
+                ownerName = player.getName(ownerOnline)
+            else
+                ownerName = offlineName(prop.owner) or 'Unknown Resident'
+            end
+            out[#out + 1] = { id = prop.owner, name = ownerName }
+        end
+        local entry = prop.permissions and prop.permissions.entry
+        if type(entry) == 'table' then
+            for _, cid in ipairs(entry) do
+                if cid ~= prop.owner then
+                    local online = player.onlineCidMap()[cid]
+                    local name
+                    if online then
+                        name = player.getName(online)
+                    else
+                        name = offlineName(cid) or 'Unknown Resident'
+                    end
+                    out[#out + 1] = { id = cid, name = name }
+                end
+            end
+        end
+        return out
+    elseif ACTIVE == 'nolag_properties' then
+        if not ownsProperty(src, id) then return {} end
+        local okH, holders = pcall(function() return exports.nolag_properties:GetKeyHolders(p) end)
+        if not okH or type(holders) ~= 'table' then return {} end
+        local cids = {}
+        for cid, _ in pairs(holders) do
+            cids[#cids + 1] = cid
+        end
+        return resolveCids(cids)
+    elseif ACTIVE == 'kartik-properties' then
+        if not ownsProperty(src, id) then return {} end
+        local ok, house = pcall(function() return exports['kartik-properties']:GetPropertyHousingData(p) end)
+        if not ok or type(house) ~= 'table' or not house.keyholders then return {} end
+        local out = {}
+        for _, kh in ipairs(house.keyholders) do
+            if not kh.isowner then
+                out[#out + 1] = { id = tostring(kh.identifier), name = kh.name or 'Resident' }
+            end
+        end
+        return out
+    end
+    return {}
+end
+
+---Grant a key to an online player, addressed by server id (coerced to a positive integer and
+---converted to each system's identifier). Ownership-gated; true on apparent success.
+---@param src number  owner source
+---@param id any property id (client-echoed)
+---@param targetSrc number|string  the recipient's server id
+---@return boolean
+function housing.giveKey(src, id, targetSrc)
+    if not caps().keyManage or not ownsProperty(src, id) then return false end
+    targetSrc = tonumber(targetSrc)
+    if not targetSrc or targetSrc < 1 or targetSrc % 1 ~= 0 then return false end
+    local p = pid(id)
+    if ACTIVE == 'bcs_housing' then
+        local ok = pcall(function() exports.bcs_housing:AddKeyHolder(p, targetSrc, bcsDefaultKey(p)) end)
+        if ok then refreshHomes(src, targetSrc) end
+        return ok
+    elseif ACTIVE == 'RxHousing' then
+        local cid = player.getIdentifier(targetSrc)
+        if not cid then return false end
+        local ok, res = pcall(function() return exports['RxHousing']:AddKeyholder(p, cid) end)
+        if ok and res ~= false then refreshHomes(src, targetSrc) end
+        return ok and res ~= false
+    elseif ACTIVE == 'ps-housing' or ACTIVE == 'origen_housing' or ACTIVE == 'vms_housing' then
+        local res = clientExec(src, 'give', p, targetSrc)
+        if res then refreshHomes(src, targetSrc) end
+        return res and true or false
+    elseif ACTIVE == 'LNS_Housing' then
+        local okPerm, allowed = pcall(function()
+            return exports.LNS_Housing:CheckPermission(src, 'house', p, 'manage')
+        end)
+        if not okPerm or not allowed then return false end
+        -- GiveKey now takes targetSource (server ID) per the updated export API.
+        local ok, res = pcall(function() return exports.LNS_Housing:GiveKey(p, targetSrc) end)
+        if ok and res ~= false then
+            refreshHomes(src, targetSrc)
+            return true
+        end
+    elseif ACTIVE == 'nolag_properties' then
+        local cid = player.getIdentifier(targetSrc)
+        if not cid then return false end
+        local ok, res = pcall(function() return exports.nolag_properties:AddKey(src, p, cid) end)
+        if ok and res then
+            refreshHomes(src, targetSrc)
+            return true
+        end
+    elseif ACTIVE == 'kartik-properties' then
+        local cid = player.getIdentifier(targetSrc)
+        local ownerCid = player.getIdentifier(src)
+        if not cid then return false end
+        local ok, res = pcall(function() return exports['kartik-properties']:GrantHousingKey(p, cid, ownerCid) end)
+        if ok and res and res.success then
+            refreshHomes(src, targetSrc)
+            return true
+        end
+        return false
+    end
+    return false
+end
+
+---Revoke a key holder by their identifier (citizenid), as returned by housing.keyHolders.
+---Ownership-gated; the holder id must be a non-empty string or number. True on apparent success.
+---@param src number owner source
+---@param id any property id (client-echoed)
+---@param holderId string holder citizenid
+---@return boolean
+function housing.removeKey(src, id, holderId)
+    if not caps().keyManage or not ownsProperty(src, id) then return false end
+    if (type(holderId) ~= 'string' and type(holderId) ~= 'number') or holderId == '' then return false end
+    local p = pid(id)
+    if ACTIVE == 'bcs_housing' then
+        local ok = pcall(function() exports.bcs_housing:RemoveKeyHolder(p, holderId) end)
+        if ok then refreshHomes(src, holderId) end
+        return ok
+    elseif ACTIVE == 'RxHousing' then
+        local ok = pcall(function() exports['RxHousing']:RemoveKeyholder(p, holderId) end)
+        if ok then refreshHomes(src, holderId) end
+        return ok
+    elseif ACTIVE == 'ps-housing' or ACTIVE == 'origen_housing' or ACTIVE == 'vms_housing' then
+        local res = clientExec(src, 'remove', p, holderId) and true or false
+        if res then refreshHomes(src, holderId) end
+        return res
+    elseif ACTIVE == 'LNS_Housing' then
+        local okPerm, allowed = pcall(function()
+            return exports.LNS_Housing:CheckPermission(src, 'house', p, 'manage')
+        end)
+        if not okPerm or not allowed then return false end
+        -- RemoveKey now takes targetSource (server ID) per the updated export API.
+        -- holderId is a citizenid (from keyHolders), so resolve to a server source first.
+        local holderSrc = tonumber(holderId)
+        if not holderSrc or holderSrc < 1 or holderSrc % 1 ~= 0 then
+            holderSrc = player.getSourceByIdentifier(tostring(holderId))
+        end
+        if not holderSrc then return false end
+        local ok, res = pcall(function() return exports.LNS_Housing:RemoveKey(p, holderSrc) end)
+        if ok and res ~= false then
+            refreshHomes(src, holderId)
+            return true
+        end
+    elseif ACTIVE == 'nolag_properties' then
+        local ok, res = pcall(function() return exports.nolag_properties:RemoveKey(src, p, tostring(holderId)) end)
+        if ok and res then
+            refreshHomes(src, holderId)
+            return true
+        end
+    elseif ACTIVE == 'kartik-properties' then
+        local ownerCid = player.getIdentifier(src)
+        local ok, res = pcall(function() return exports['kartik-properties']:RevokeHousingKey(p, tostring(holderId), ownerCid) end)
+        if ok and res and res.success then
+            refreshHomes(src, holderId)
+            return true
+        end
+        return false
+    end
+    return false
+end
+
+return housing

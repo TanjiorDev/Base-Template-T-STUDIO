@@ -1,0 +1,1 @@
+import{r as e}from"./nui-DxdNkJci.js";import{n as t}from"./api-WQfaQy2B.js";var n=null;async function r(){return n||(e?(n={people:(await t(`sd-phone:maps:config`))?.people!==!1},n):(n={people:!0},n))}export{r as t};

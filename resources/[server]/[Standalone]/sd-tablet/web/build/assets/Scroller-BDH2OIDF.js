@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-By8HlURe.js";var t=e();function n({children:e,className:n=``}){return(0,t.jsx)(`div`,{className:`ios-scrollbar overflow-y-auto ${n}`,children:e})}export{n as t};

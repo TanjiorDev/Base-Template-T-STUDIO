@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <title>BloodAdmin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css?v=2.6"/>
+</head>
+<body>
+<!-- JAIL OVERLAY TIMER -->
+<div id="jail-overlay" class="hidden">
+    <div class="jail-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <div class="jail-title">EN PRISON</div>
+        <div class="jail-timer" id="jail-timer">00:00</div>
+        <div class="jail-desc">Vous devez purger votre peine avant de pouvoir repartir.</div>
+    </div>
+</div>
+
+<!-- ══ STAFF HUD (Unified Horizontal Bar) ══ -->
+<div id="staff-hud" class="staff-hud hidden">
+  <div class="hud-bar">
+    <div class="hb-section hb-title">
+        <div class="hb-dot-pulse"></div>
+        <span>STAFF MODE</span>
+    </div>
+    
+    <div class="hb-divider"></div>
+    
+    <div class="hb-section hb-keys">
+        <div class="hb-key-group">
+            <span class="k">ZSQD</span>
+            <span class="l">Move</span>
+        </div>
+        <div class="hb-key-group">
+            <span class="k">MAJ/CTRL</span>
+            <span class="l">Boost</span>
+        </div>
+        <div class="hb-key-group">
+            <span class="k">ESPACE/ALT</span>
+            <span class="l">Haut/Bas</span>
+        </div>
+        <div class="hb-key-group">
+            <span class="k">PG UP/DN</span>
+            <span class="l">Vitesse</span>
+        </div>
+    </div>
+
+    <div class="hb-divider"></div>
+
+    <div class="hb-section hb-keys">
+        <div class="hb-key-group">
+            <span class="k">G</span>
+            <span class="l">Vanish</span>
+        </div>
+        <div class="hb-key-group">
+            <span class="k">E</span>
+            <span class="l">Marqueur</span>
+        </div>
+    </div>
+
+    <div class="hb-divider"></div>
+
+    <div class="hb-section hb-actions">
+        <div class="hb-key-group">
+            <span class="k danger">X</span>
+            <span class="l">Quitter</span>
+        </div>
+    </div>
+  </div>
+</div>
+<!-- ══ PERMANENT HUD ══ -->
+<div id="reports-widget" class="hidden">
+  <div class="rw-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+  </div>
+  <div class="rw-content">
+    <div class="rw-label">REPORT</div>
+    <div class="rw-count" id="rw-count-val">0</div>
+  </div>
+</div>
+
+<div id="overlay" class="hidden">
+  <div id="panel">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name" id="server-name">BloodCity</span>
+          <span class="brand-sub">Admin Panel</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Général</div>
+        <div class="nav-item active" data-tab="dashboard">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          <span>Dashboard</span>
+        </div>
+        <div class="nav-item" data-tab="players">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Joueurs</span><span class="nav-badge" id="player-count">0</span>
+        </div>
+
+        <div class="nav-section-label staff-label">Espace Personnel</div>
+        <div class="nav-item nav-item-staff" data-tab="staffmode">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <span>Espace Staff</span>
+        </div>
+
+        <div class="nav-section-label">Administration</div>
+        <div class="nav-item" data-tab="sanctions">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Sanctions</span><span class="nav-badge nav-badge-red" id="ban-count">0</span>
+        </div>
+        <div class="nav-item" data-tab="reports">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          <span>Reports</span><span class="nav-badge nav-badge-amber" id="report-count">0</span>
+        </div>
+        <div class="nav-item" data-tab="logs" id="nav-logs">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Logs Serveur</span>
+        </div>
+
+
+        <div class="nav-item" data-tab="vehicles">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10H8s-2.7.6-4.5 1.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+          <span>Véhicules</span>
+        </div>
+        <div class="nav-section-label">Gestion</div>
+        <div class="nav-item" data-tab="permissions">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Permissions</span>
+        </div>
+
+        <div class="nav-section-label">Mode</div>
+        <div class="nav-item" data-tab="world">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2M4.22 4.22l1.42 1.42M1 12h2M4.22 19.78l1.42-1.42M12 20v2M18.36 18.36l1.42 1.42M21 12h-2M18.36 5.64l1.42-1.42M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+          <span>Environnement</span>
+        </div>
+
+        <div class="nav-section-label">Système</div>
+        <div class="nav-item" data-tab="resources">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span>Ressources</span>
+        </div>
+
+
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="admin-grade-info">
+          <div class="ag-header">
+            <span class="ag-label">Grade Actuel</span>
+            <div class="ag-duty-indicator" id="ag-duty-indicator">
+              <div class="ag-dot"></div>
+              <span id="ag-duty-text">HORS SERVICE</span>
+            </div>
+          </div>
+          <div class="admin-grade-row" id="admin-grade">
+            <div class="sc-grade-badge">Chargement...</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ══ MAIN ══ -->
+    <main id="main">
+      <header id="topbar">
+        <div class="topbar-left">
+          <div class="title-row">
+            <h1 class="page-title" id="page-title">Dashboard</h1>
+            <div class="topbar-metrics">
+              <div class="stat-pill" id="pill-ping">Ping <span class="mono" id="ping-val">—ms</span></div>
+              <div class="stat-pill" id="pill-mem">Mémoire <span class="mono" id="mem-val">—MB</span></div>
+              <div class="stat-pill" id="pill-players">En ligne <span class="mono red" id="topbar-online">0</span></div>
+            </div>
+          </div>
+          <p class="page-sub" id="page-sub">Vue d'ensemble du serveur</p>
+        </div>
+        <div class="topbar-right">
+          <button class="close-btn" id="btn-close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div id="content">
+
+        <!-- TAB: DASHBOARD -->
+        <div id="tab-dashboard" class="tab active">
+          <!-- Main Stat Row -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="sc-label">Population</div>
+              <div class="sc-value red" id="dc-online">0</div>
+              <div class="sc-sub" id="dc-online-sub">joueurs connectés</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Latence Moyenne</div>
+              <div class="sc-value amber" id="dc-avg-ping">0ms</div>
+              <div class="sc-sub">Global serveur</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Ressources</div>
+              <div class="sc-value white" id="dc-res-count">0</div>
+              <div class="sc-sub" id="dc-res-sub">scripts chargés</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Sanctions</div>
+              <div class="sc-value green" id="dc-bans">0</div>
+              <div class="sc-sub">Bannissements actifs</div>
+            </div>
+          </div>
+
+          <div class="stat-cards" style="margin-top:12px">
+            <div class="stat-card">
+              <div class="sc-label">Reports Totaux</div>
+              <div class="sc-value indigo" id="dc-reports-total">0</div>
+              <div class="sc-sub">Depuis le reboot</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Reports en cours</div>
+              <div class="sc-value cyan" id="dc-reports-active">0</div>
+              <div class="sc-sub">En attente d'aide</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Staff Connecté</div>
+              <div class="sc-value rose" id="dc-staff-online">0</div>
+              <div class="sc-sub">Membres en service</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Nouveaux Joueurs</div>
+              <div class="sc-value emerald" id="dc-new-players">0</div>
+              <div class="sc-sub">Aujourd'hui</div>
+            </div>
+          </div>
+
+          <div class="dash-grid-v3">
+            <!-- Left: Server Health & Metrics -->
+            <div class="dash-col" style="gap:20px">
+              <div class="dash-section section-health">
+                <div class="dash-section-header">
+                  <span class="dash-section-title">État du Serveur</span>
+                  <div class="status-badge status-online">Stable</div>
+                </div>
+                <div class="health-metrics">
+                  <div class="health-item">
+                    <div class="hi-label"><span>Usage Mémoire</span><span id="health-mem-pct">0%</span></div>
+                    <div class="hi-bar-bg"><div class="hi-bar" id="bar-mem" style="width:0%"></div></div>
+                  </div>
+                  <div class="health-item">
+                    <div class="hi-label"><span>Latence (Avg)</span><span id="health-ping-val">0ms</span></div>
+                    <div class="hi-bar-bg"><div class="hi-bar amber" id="bar-ping" style="width:0%"></div></div>
+                  </div>
+                  <div class="health-item">
+                    <div class="hi-label"><span>Stabilité CPU</span><span>98.2%</span></div>
+                    <div class="hi-bar-bg"><div class="hi-bar green" style="width:98%"></div></div>
+                  </div>
+                  <div class="health-item">
+                    <div class="hi-label"><span>Fx Server Memory</span><span id="health-fx-val">0 MB</span></div>
+                    <div class="hi-bar-bg"><div class="hi-bar amber" id="bar-fx" style="width:0%"></div></div>
+                  </div>
+                  <div class="health-item">
+                    <div class="hi-label"><span>NodeJs Memory</span><span id="health-node-val">0 MB</span></div>
+                    <div class="hi-bar-bg"><div class="hi-bar green" id="bar-node" style="width:0%"></div></div>
+                  </div>
+
+                  <div class="quick-info-grid">
+                    <div class="qi-card">
+                      <div class="qi-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                      <div class="qi-text">
+                        <div class="qi-val" id="qi-staff-count">0</div>
+                        <div class="qi-lab">Staffs Actifs</div>
+                      </div>
+                    </div>
+                    <div class="qi-card">
+                      <div class="qi-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                      <div class="qi-text">
+                        <div class="qi-val" id="qi-uptime">0 min</div>
+                        <div class="qi-lab">Uptime Session</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+
+              </div>
+
+              <div class="dash-section section-chat">
+                <div class="dash-section-header">
+                  <span class="dash-section-title">Communication Staff</span>
+                  <div class="status-badge" style="background:rgba(59,130,246,0.1); color:#60a5fa">Interne</div>
+                </div>
+                <div class="staff-chat-wrap">
+                  <div id="staff-chat-messages" class="staff-chat-messages">
+                    <div class="chat-empty">Aucun message récent</div>
+                  </div>
+                  <div id="chat-reply-preview" class="chat-reply-preview hidden"></div>
+                    <div class="staff-chat-input-row">
+                      <input type="text" id="staff-chat-input" placeholder="Message à l'équipe..." autocomplete="off"/>
+                      <button id="btn-chat-mention" title="Mentionner">@</button>
+                      <button id="btn-staff-chat-send">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                      </button>
+                    </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Recent Activity -->
+            <div class="dash-col">
+              <div class="dash-section" style="height:100%">
+                <div class="dash-section-header">
+                  <span class="dash-section-title">Activité Staff Récente</span>
+                  <button class="res-act-btn" onclick="$('[data-tab=logs]').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+                </div>
+                <div id="dash-activity-list" class="activity-feed">
+                  <!-- Generated in JS -->
+                </div>
+                <div id="dash-activity-empty" class="empty-state hidden">Aucune activité récente</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: JOUEURS -->
+        <div id="tab-players" class="tab hidden">
+          <!-- Metrics Overview Bar -->
+          <div class="players-metrics-container">
+            <div class="pm-metric-card">
+              <div class="pm-metric-icon online">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              </div>
+              <div class="pm-metric-info">
+                <span class="pm-metric-val" id="pm-total-online">0</span>
+                <span class="pm-metric-label">Joueurs Connectés</span>
+              </div>
+            </div>
+            <div class="pm-metric-card">
+              <div class="pm-metric-icon staff">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="pm-metric-info">
+                <span class="pm-metric-val" id="pm-active-staff">0</span>
+                <span class="pm-metric-label">Staff en Service</span>
+              </div>
+            </div>
+            <div class="pm-metric-card">
+              <div class="pm-metric-icon ping">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.5a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3M8 9.5a6 6 0 0 1 6-6h4"/></svg>
+              </div>
+              <div class="pm-metric-info">
+                <span class="pm-metric-val" id="pm-avg-ping">-- ms</span>
+                <span class="pm-metric-label">Latence Moyenne</span>
+              </div>
+            </div>
+            <div class="pm-metric-card" id="metric-registered-offline">
+              <div class="pm-metric-icon offline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/></svg>
+              </div>
+              <div class="pm-metric-info">
+                <span class="pm-metric-val" id="pm-registered-offline">0</span>
+                <span class="pm-metric-label">Inscrits Hors-ligne</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="toolbar">
+            <div class="search-box">
+              <svg class="search-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="player-search" placeholder="Rechercher un joueur (Nom, ID, Job)..."/>
+            </div>
+            <div class="filter-pills" id="players-filter-pills" style="margin-left: auto; margin-right: 8px;">
+              <button class="fpill active" id="btn-players-online" data-filter="online">En ligne</button>
+              <button class="fpill" id="btn-players-offline" data-filter="offline">Hors ligne</button>
+            </div>
+            <button class="toolbar-btn" id="btn-refresh">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Actualiser
+            </button>
+          </div>
+          <div class="players-layout">
+            <div class="player-list-area" id="player-list">
+              <div id="empty-players" class="empty-state hidden">Aucun joueur connecté</div>
+            </div>
+            <div id="player-actions" class="action-panel hidden">
+              <div class="ap-header">
+                <div class="ap-avatar" id="pa-avatar">?</div>
+                <div class="ap-info"><div class="ap-name" id="pa-name">—</div><div class="ap-meta" id="pa-id">—</div></div>
+              </div>
+              <div class="ap-divider"></div>
+              <div id="player-identifiers-container" class="ap-identifiers-box"></div>
+              <div class="ap-divider"></div>
+              <div class="ap-actions" id="actions-grid"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: STAFF MODE -->
+        <div id="tab-staffmode" class="tab hidden">
+          <div class="sm-container">
+            <!-- Cockpit Header -->
+            <div class="sm-welcome-banner">
+              <div class="swb-text">
+                <h2 id="sm-welcome-title">Cockpit Administratif</h2>
+                <p>Bienvenue sur votre espace de travail, <span id="sm-player-name" style="color:var(--red2); font-weight:800;">Staff</span>.</p>
+              </div>
+              <div class="swb-actions">
+                <div class="stat-pill" style="background:rgba(220,38,38,0.1); border-color:rgba(220,38,38,0.2); color:var(--red2);">
+                  Session: <span class="mono" id="sm-session-time">00:00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upper Row: Service & Global Stats -->
+            <div class="sm-status-row">
+              <div class="sm-duty-card" id="sm-duty-banner">
+                <div class="sm-duty-info">
+                  <div class="sm-duty-title">État du Service</div>
+                  <div class="sm-duty-status" id="sm-status-text">HORS SERVICE</div>
+                </div>
+                <div class="sm-duty-toggle-wrap">
+                  <label class="switch">
+                    <input type="checkbox" id="sw-staff-service-v3"/>
+                    <span class="switch-track"><span class="switch-thumb"></span></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="sm-stats-grid-v4">
+                <div class="sm-stat-mini-v4">
+                  <div class="ssm-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                  <div class="ssm-content"><div class="ssm-val" id="sm-reports-count-v3">0</div><div class="ssm-lab">Reports actifs</div></div>
+                </div>
+                <div class="sm-stat-mini-v4">
+                  <div class="ssm-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+                  <div class="ssm-content"><div class="ssm-val" id="sm-staff-online-v3">0</div><div class="ssm-lab">Staff en service</div></div>
+                </div>
+                <div class="sm-stat-mini-v4">
+                  <div class="ssm-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                  <div class="ssm-content"><div class="ssm-val" id="sm-my-actions">0</div><div class="ssm-lab">Vos actions</div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Content Grid: Reports, Tools & Chat -->
+            <div class="sm-main-grid-v4">
+              <!-- Left: Tools & Personal Actions -->
+              <div class="sm-col-left">
+                <div class="sm-card-v4">
+                  <div class="sm-card-header-v4">
+                    <span class="sm-card-title-v4">Outils de Modération</span>
+                  </div>
+                  <div class="sm-tools-v4">
+                    <div class="sm-tool-group">
+                      <div class="sm-group-label">VOTRE PERSONNAGE</div>
+                      <div class="sm-tool-btns-v4">
+                        <button class="sm-action-btn-v4" id="sm-tool-noclip">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/></svg></div>
+                          <span>Noclip</span>
+                        </button>
+                        <button class="sm-action-btn-v4" id="sm-tool-god">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                          <span>Godmode</span>
+                        </button>
+                        <button class="sm-action-btn-v4" id="sm-tool-vanish">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><line x1="1" y1="1" x2="23" y2="23"/></svg></div>
+                          <span>Invisibilité</span>
+                        </button>
+                        <button class="sm-action-btn-v4" id="sm-tool-heal">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+                          <span>Soigner</span>
+                        </button>
+                        <button class="sm-action-btn-v4" id="sm-tool-revive">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+                          <span>Réanimer</span>
+                        </button>
+                        <button class="sm-action-btn-v4" id="sm-tool-armor">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 .76-.97l7-2a1 1 0 0 1 .48 0l7 2A1 1 0 0 1 20 6v7z"/></svg></div>
+                          <span>Armure</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="sm-tool-group">
+                      <div class="sm-group-label">OUTILS SPÉCIAUX</div>
+                      <div class="sm-tool-btns-v4">
+                        <button class="sm-action-btn-v4" id="sm-tool-tpmarker" style="background:rgba(59, 130, 246, 0.05); border-color:rgba(59, 130, 246, 0.2);">
+                          <div class="sab-icon" style="color:#60a5fa;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg></div>
+                          <span>TP Marker</span>
+                        </button>
+                        <button class="sm-action-btn-v4" id="sm-tool-esp">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                          <span>ESP Noms</span>
+                        </button>
+                        <button class="sm-action-btn-v4" id="sm-tool-delgun">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 5l-2 2-3-3m0 0l-1 1 3 3m-2-2l3 3M19 14l2-2-3-3m0 0l-1 1 3 3m-2-2l3 3M14 19l2-2-3-3m0 0l-1 1 3 3m-2-2l3 3M5 10l2-2-3-3m0 0l-1 1 3 3m-2-2l3 3"/></svg></div>
+                          <span>Delete Gun</span>
+                        </button>
+                        <button class="sm-action-btn-v4" id="sm-tool-fixworld">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+                          <span>Fix World</span>
+                        </button>
+                        <button class="sm-action-btn-v4" id="sm-tool-blips">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+                          <span>Blips Joueurs</span>
+                        </button>
+                        <button class="sm-action-btn-v4" id="sm-tool-clearchat">
+                          <div class="sab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg></div>
+                          <span>Vider Chat</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="sm-card-v4" style="flex:1">
+                  <div class="sm-card-header-v4">
+                    <span class="sm-card-title-v4">Staff Chat</span>
+                    <div class="cm-label" style="font-size:8px">Canal Privé</div>
+                  </div>
+                  <div class="sm-chat-preview" id="sm-chat-messages-preview">
+                    <!-- Preview des derniers messages -->
+                    <div class="chat-empty">Ouvrez l'onglet Dashboard pour le chat complet</div>
+                  </div>
+                  <div class="sm-chat-input-row">
+                    <input type="text" id="sm-chat-input-quick" placeholder="Message rapide..."/>
+                    <button id="btn-sm-chat-send"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Reports & Notifications -->
+              <div class="sm-col-right">
+                <div class="sm-card-v4" style="height:100%">
+                  <div class="sm-card-header-v4">
+                    <span class="sm-card-title-v4">Reports en attente</span>
+                    <button class="sm-refresh-btn" id="btn-refresh-reports-v4">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    </button>
+                  </div>
+                  <div class="sm-report-list-v4" id="sm-report-list-v4">
+                    <div class="empty-state">Aucun report actif.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: SANCTIONS -->
+        <div id="tab-sanctions" class="tab hidden">
+          <!-- Sanctions Stats Header -->
+          <div class="sanctions-stats-v4">
+            <div class="s-stat-card">
+              <div class="ssc-label">Bans Actifs</div>
+              <div class="ssc-value red" id="st-active-bans">0</div>
+              <div class="ssc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+            </div>
+            <div class="s-stat-card">
+              <div class="ssc-label">Avertissements</div>
+              <div class="ssc-value amber" id="st-total-warns">0</div>
+              <div class="ssc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            </div>
+            <div class="s-stat-card">
+              <div class="ssc-label">Sanctions (24h)</div>
+              <div class="ssc-value" id="st-recent-actions">0</div>
+              <div class="ssc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="tab-pills">
+              <button class="pill active" data-sub="bans">Bans <span class="pill-badge" id="badge-bans">0</span></button>
+              <button class="pill" data-sub="warns">Warns <span class="pill-badge" id="badge-warns">0</span></button>
+              <button class="pill" data-sub="jails">Prisons <span class="pill-badge" id="badge-jails">0</span></button>
+              <button class="pill" data-sub="ghosts">Ghosts <span class="pill-badge" id="badge-ghosts">0</span></button>
+            </div>
+            <div class="search-box">
+              <svg class="search-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="sanction-search" placeholder="Rechercher..."/>
+            </div>
+            <button class="toolbar-btn" id="btn-refresh-sanctions-v4">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            </button>
+          </div>
+
+          <div id="sub-bans" class="sub-content active">
+            <div class="dash-section" style="flex:1">
+              <div class="dtable-wrap">
+                <table class="dtable">
+                  <thead>
+                    <tr>
+                      <th>Joueur</th>
+                      <th>Raison</th>
+                      <th>Staff</th>
+                      <th>Expiration</th>
+                      <th style="text-align:right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ban-list-tbody"></tbody>
+                </table>
+                <div id="empty-bans" class="empty-state">Aucun ban actif</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="sub-warns" class="sub-content hidden">
+            <div class="dash-section" style="flex:1">
+              <div class="dtable-wrap">
+                <table class="dtable">
+                  <thead>
+                    <tr>
+                      <th>Joueur</th>
+                      <th>Raison</th>
+                      <th>Staff</th>
+                      <th>Date</th>
+                      <th style="text-align:right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="warn-list-tbody"></tbody>
+                </table>
+                <div id="empty-warns" class="empty-state">Aucun avertissement trouvé</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="sub-jails" class="sub-content hidden">
+            <div class="dash-section" style="flex:1">
+              <div class="dtable-wrap">
+                <table class="dtable">
+                  <thead>
+                    <tr>
+                      <th>Joueur</th>
+                      <th>Staff</th>
+                      <th>Fin de Peine</th>
+                      <th style="text-align:right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="jail-list-tbody"></tbody>
+                </table>
+                <div id="empty-jails" class="empty-state">Aucun prisonnier</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="sub-ghosts" class="sub-content hidden">
+            <div class="dash-section" style="flex:1">
+              <div class="dtable-wrap">
+                <table class="dtable">
+                  <thead>
+                    <tr>
+                      <th>Joueur</th>
+                      <th>Staff</th>
+                      <th>Depuis</th>
+                      <th style="text-align:right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ghost-list-tbody"></tbody>
+                </table>
+                <div id="empty-ghosts" class="empty-state">Aucun ghost ban actif</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: REPORTS -->
+        <div id="tab-reports" class="tab hidden">
+          <!-- VIEW 1: ACTIVE REPORTS -->
+          <div id="reports-view-main" class="reports-subview">
+            <div class="sm-reports-header-v4">
+              <div class="sm-reports-stats-v4">
+                <div class="sm-stat-mini">
+                  <span class="sm-stat-val" id="rep-total-count">0</span>
+                  <span class="sm-stat-lab">Total Reçus</span>
+                </div>
+                <div class="sm-stat-mini">
+                  <span class="sm-stat-val" id="rep-closed-count" style="color:#34d399">0</span>
+                  <span class="sm-stat-lab">Traités</span>
+                </div>
+                <div class="sm-stat-mini">
+                  <span class="sm-stat-val" id="rep-open-count" style="color:var(--red2)">0</span>
+                  <span class="sm-stat-lab">En attente</span>
+                </div>
+              </div>
+              
+              <div class="toolbar-search-wrap">
+                  <div class="search-box">
+                      <svg class="search-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                      <input type="text" id="report-search" placeholder="Rechercher..."/>
+                  </div>
+              </div>
+  
+              <div class="sm-reports-actions">
+                <button class="toolbar-btn leaderboard-btn" id="btn-show-leaderboard-page">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55.47.98.97 1.21C11.47 18.44 12 19 12 19s.53-.56 1.03-.79c.5-.23.97-.66.97-1.21v-2.34c0-.55-.45-1-1-1h-2c-.55 0-1 .45-1 1zM18 9c0 7-6 11-6 11s-6-4-6-11a6 6 0 0 1 12 0z"/></svg>
+                  Classement
+                </button>
+                <button class="toolbar-btn" id="btn-refresh-reports-main">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
+              </div>
+            </div>
+  
+            <div class="reports-grid-v4" id="reports-grid">
+              <!-- Grid Content -->
+            </div>
+          </div>
+
+          <!-- VIEW 2: LEADERBOARD PAGE -->
+          <div id="reports-view-leaderboard" class="reports-subview hidden">
+            <div class="sm-reports-header-v4">
+                <div class="leaderboard-title-wrap">
+                    <button class="back-btn-v4" id="btn-back-to-reports">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        RETOUR
+                    </button>
+                    <div class="lb-main-title">🏆 PANTHÉON DU STAFF</div>
+                </div>
+                <div class="lb-period-tag">HISTORIQUE GLOBAL</div>
+            </div>
+
+            <div class="leaderboard-full-grid" id="leaderboard-list-full">
+                <!-- Content via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL: LEADERBOARD REMOVED (REPLACED BY PAGE) -->
+
+        <!-- TAB: LOGS -->
+        <div id="tab-logs" class="tab hidden">
+          <div class="toolbar">
+            <div class="tab-pills" style="background:var(--bg3);border:none">
+              <button class="pill active" data-log-cat="all">Tous</button>
+              <button class="pill" data-log-cat="moderation">Modération</button>
+              <button class="pill" data-log-cat="economy">Économie</button>
+              <button class="pill" data-log-cat="staff">Staff</button>
+              <button class="pill" data-log-cat="world">Monde</button>
+              <button class="pill" data-log-cat="vehicle">Véhicules</button>
+              <button class="pill" data-log-cat="resources">Ressources</button>
+            </div>
+            <div class="search-box" style="max-width:220px">
+              <input type="text" id="log-search" placeholder="Rechercher..."/>
+            </div>
+            <div class="toolbar-right" style="display:flex; gap:8px">
+              <button class="toolbar-btn danger-btn hidden" id="btn-clear-logs" title="Effacer tous les logs (Boss uniquement)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Effacer
+              </button>
+              <button class="toolbar-btn" id="btn-refresh-logs">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="dash-section" style="flex:1">
+            <div class="dtable-wrap">
+              <table class="dtable">
+                <thead><tr><th>Date</th><th>Catégorie</th><th>Action</th><th>Admin</th><th>Cible</th><th>Détails</th><th style="text-align:right">Actions</th></tr></thead>
+                <tbody id="logs-tbody"></tbody>
+              </table>
+              <div id="logs-empty" class="empty-state hidden">Aucun log trouvé</div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- TAB: RESSOURCES -->
+        <div id="tab-resources" class="tab hidden">
+          <div class="toolbar">
+            <div class="search-box">
+              <svg class="search-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="resource-search" placeholder="Rechercher une ressource..."/>
+            </div>
+            <button class="toolbar-btn" id="btn-refresh-res-list">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Actualiser
+            </button>
+          </div>
+          <div class="dash-section" style="flex:1">
+            <div class="dtable-wrap">
+              <table class="dtable">
+                <thead><tr><th>Nom</th><th>Statut</th><th>Version</th><th>Auteur</th><th>Actions</th></tr></thead>
+                <tbody id="res-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: PERMISSIONS -->
+        <div id="tab-permissions" class="tab hidden">
+          <div class="toolbar">
+            <div class="toolbar-info">
+              <div class="ac-title" id="perm-title">Gestion des Grades</div>
+              <div class="ac-sub" id="perm-sub-title">Configurez les droits d'accès en temps réel</div>
+            </div>
+            <div class="toolbar-right" style="display:flex; gap:8px">
+                <button class="toolbar-btn" id="btn-edit-grade-settings">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Paramètres
+                </button>
+                <button class="toolbar-btn primary" id="btn-add-staff">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Ajouter Staff
+                </button>
+                <button class="toolbar-btn" id="btn-add-grade">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Nouveau Grade
+                </button>
+                <button class="toolbar-btn danger-btn" id="btn-delete-grade" style="display:none">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                </button>
+                <button class="toolbar-btn primary" id="btn-save-perms">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Sauvegarder
+                </button>
+            </div>
+          </div>
+
+          <div class="tab-pills" style="margin-bottom: 20px; border-color: rgba(220,38,38,0.15)">
+            <button class="pill active" data-psub="grades">Grades & Droits</button>
+            <button class="pill" data-psub="members">Membres du Staff</button>
+          </div>
+          
+          <div id="psub-grades-content" class="psub-content">
+            <div class="perms-layout-v2">
+              <div class="perms-sidebar">
+                  <div class="perms-sidebar-title">
+                      Grades
+                  </div>
+                  <div id="perms-grades-list" class="perms-grades-list">
+                      <!-- Généré en JS -->
+                  </div>
+              </div>
+              <div class="perms-content">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                      <div id="perms-active-grade-title" class="perms-active-title" style="margin-bottom:0">Sélectionnez un grade</div>
+                      <button class="toolbar-btn primary" id="btn-full-perms" style="display:none; font-size:11px; padding:6px 12px; gap:6px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid rgba(16,185,129,0.3); box-shadow: 0 4px 12px rgba(16,185,129,0.2);">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                          TOUT ACTIVER
+                      </button>
+                  </div>
+                  <div class="perms-search-wrap">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                      <input type="text" id="perm-search" class="perm-search-input" placeholder="Rechercher une permission...">
+                  </div>
+                  <div id="perms-toggles-grid" class="perms-toggles-grid-v2">
+                      <!-- Généré en JS -->
+                  </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="psub-members-content" class="psub-content hidden">
+            <div class="toolbar" style="margin-bottom: 15px; padding: 0;">
+                <div class="search-box">
+                    <svg class="search-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="staff-member-search" placeholder="Rechercher un membre du staff..."/>
+                </div>
+                <button class="toolbar-btn" id="btn-refresh-staff-list">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
+            </div>
+            <div class="dash-section" style="flex:1">
+              <div class="dtable-wrap">
+                <table class="dtable">
+                  <thead><tr><th>Membre</th><th>Identifiant</th><th>Grade</th><th>Statut</th><th>Actions</th></tr></thead>
+                  <tbody id="staff-members-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div id="tab-vehicles" class="tab hidden">
+          
+          <div class="v-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div class="tab-pills" style="margin-bottom: 0; border-color: rgba(220,38,38,0.15)">
+              <button class="pill active" data-vsub="control">Contrôle Rapide</button>
+              <button class="pill" data-vsub="catalog">Catalogue Véhicules</button>
+              <button class="pill" data-vsub="customs">Customisation</button>
+            </div>
+            <button class="v-give-btn-top" onclick="openGiveVehicleModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                DONNER UN VÉHICULE
+            </button>
+          </div>
+
+          <!-- SUB-VIEW: CONTROLE RAPIDE -->
+          <div id="vsub-control-content" class="vsub-content">
+              <div class="v-hero-header">
+              <div class="v-hero-content">
+                  <h2 class="v-hero-title">Contrôle <span>Véhicules</span></h2>
+                  <p class="v-hero-desc">Gestion instantanée des entités motorisées et customisation de flotte.</p>
+              </div>
+              <div class="v-hero-preview-box">
+                  <div id="v-model-preview" class="v-model-preview">
+                      <img id="v-preview-img" src="" class="hidden" alt=""/>
+                      <div id="v-preview-placeholder" class="v-preview-placeholder">
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10H8s-2.7.6-4.5 1.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+                      </div>
+                  </div>
+              </div>
+              <div class="v-hero-spawn">
+                  <div class="vs-input-group">
+                      <div class="vs-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10H8s-2.7.6-4.5 1.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+                      <input type="text" id="veh-model" placeholder="Modèle... (ex: adder)"/>
+                      <button class="vs-btn-spawn" id="btn-spawn-veh">Déployer</button>
+                  </div>
+                  <div class="v-quick-spawns">
+                      <button class="vq-btn" onclick="$('veh-model').value='bmwm3'; updateVehiclePreview('bmwm3'); $('btn-spawn-veh').click()">BMW M3</button>
+                      <button class="vq-btn" onclick="$('veh-model').value='panto'; updateVehiclePreview('panto'); $('btn-spawn-veh').click()">Panto</button>
+                      <button class="vq-btn" onclick="$('veh-model').value='sanchez'; updateVehiclePreview('sanchez'); $('btn-spawn-veh').click()">Sanchez</button>
+                      <button class="vq-btn danger-hover" onclick="sendToClient('vehicleAction',{action:'wipe'})">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px; vertical-align:-2px"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Wipe Zone
+                      </button>
+                  </div>
+              </div>
+          </div>
+      
+          <div class="v-main-layout">
+              <!-- Colonne Actions -->
+              <div class="v-col v-col-actions">
+                  <h3 class="v-col-title">Actions Rapides</h3>
+                  <div class="v-actions-grid">
+                      <button class="v-action-btn green-glow" onclick="sendToClient('vehicleAction',{action:'repair'})">
+                          <div class="va-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+                          <span>Réparer</span>
+                      </button>
+                      <button class="v-action-btn cyan-glow" onclick="sendToClient('vehicleAction',{action:'clean'})">
+                          <div class="va-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg></div>
+                          <span>Nettoyer</span>
+                      </button>
+                      <button class="v-action-btn amber-glow" onclick="sendToClient('vehicleAction',{action:'flip'})">
+                          <div class="va-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg></div>
+                          <span>Retourner</span>
+                      </button>
+                      <button class="v-action-btn orange-glow" onclick="sendToClient('vehicleAction',{action:'fuel'})">
+                          <div class="va-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 14s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="3" y1="22" x2="3" y2="4"/></svg></div>
+                          <span>Refuel</span>
+                      </button>
+                      <button class="v-action-btn violet-glow" onclick="sendToClient('vehicleAction',{action:'lock'})">
+                          <div class="va-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+                          <span>Portes</span>
+                      </button>
+                      <button class="v-action-btn blue-glow" onclick="sendToClient('vehicleAction',{action:'engine'})">
+                          <div class="va-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>
+                          <span>Moteur</span>
+                      </button>
+                      <button class="v-action-btn yellow-glow" onclick="sendToClient('vehicleAction',{action:'eject'})">
+                          <div class="va-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 17l5-5-5-5M21 12H9M9 3H4v18h5"/></svg></div>
+                          <span>Éjecter</span>
+                      </button>
+                      <button class="v-action-btn white-glow" onclick="sendToClient('vehicleAction',{action:'godmode'})">
+                          <div class="va-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></div>
+                          <span>Godmode</span>
+                      </button>
+                      <button class="v-action-btn pink-glow" onclick="sendToClient('vehicleAction',{action:'boost'})">
+                          <div class="va-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+                          <span>Mega Boost</span>
+                      </button>
+                  </div>
+              </div>
+      
+              <!-- Colonne Tuning -->
+              <div class="v-col v-col-tuning">
+                  <h3 class="v-col-title">Atelier & Customisation</h3>
+                  
+                  <div class="vt-card">
+                      <div class="vt-label">Plaque d'immatriculation</div>
+                      <div class="vt-input-row">
+                          <input type="text" id="veh-plate" class="vt-input" placeholder="BLOODL3AK" maxlength="8"/>
+                          <button class="vt-btn primary" onclick="sendToClient('vehicleAction',{action:'plate', text: $('veh-plate').value})">Appliquer</button>
+                      </div>
+                  </div>
+      
+                  <div class="vt-card">
+                      <div class="vt-label">Performances Max</div>
+                      <p class="vt-desc">Améliore le moteur, freins, transmission et blindage au niveau maximum.</p>
+                      <button class="vt-btn-full cyan-btn" onclick="sendToClient('vehicleAction',{action:'max'})">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:8px; vertical-align:-3px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                          INSTALLER FULL MODS
+                      </button>
+                  </div>
+      
+                  <div class="vt-card" style="margin-top: 15px;">
+                      <div class="vt-label">Peinture Rapide</div>
+                      <div class="v-color-palette">
+                          <div class="v-color-swatch" style="background: #ffffff" onclick="sendToClient('vehicleAction',{action:'color', r:255, g:255, b:255})"></div>
+                          <div class="v-color-swatch" style="background: #1a1a1a" onclick="sendToClient('vehicleAction',{action:'color', r:0, g:0, b:0})"></div>
+                          <div class="v-color-swatch" style="background: #ef4444" onclick="sendToClient('vehicleAction',{action:'color', r:239, g:68, b:68})"></div>
+                          <div class="v-color-swatch" style="background: #3b82f6" onclick="sendToClient('vehicleAction',{action:'color', r:59, g:130, b:246})"></div>
+                          <div class="v-color-swatch" style="background: #10b981" onclick="sendToClient('vehicleAction',{action:'color', r:16, g:185, b:129})"></div>
+                          <div class="v-color-swatch" style="background: #f59e0b" onclick="sendToClient('vehicleAction',{action:'color', r:245, g:158, b:11})"></div>
+                          <div class="v-color-swatch" style="background: #8b5cf6" onclick="sendToClient('vehicleAction',{action:'color', r:139, g:92, b:246})"></div>
+                          <div class="v-color-swatch" style="background: #ec4899" onclick="sendToClient('vehicleAction',{action:'color', r:236, g:72, b:153})"></div>
+                          <div class="v-color-swatch" style="background: #06b6d4" onclick="sendToClient('vehicleAction',{action:'color', r:6, g:182, b:212})"></div>
+                          <button class="v-color-custom" onclick="openColorPicker()">+</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          </div> <!-- END SUB-VIEW CONTROL -->
+
+          <!-- SUB-VIEW: CATALOGUE -->
+          <div id="vsub-catalog-content" class="vsub-content hidden">
+              <div class="catalog-header">
+                  <div class="cat-search-box">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                      <input type="text" id="catalog-search" placeholder="Rechercher un véhicule..."/>
+                  </div>
+                  <div class="cat-filters" id="catalog-filters">
+                      <button class="cat-filter active" data-category="all">Tout</button>
+                      <button class="cat-filter" data-category="Super">Super</button>
+                      <button class="cat-filter" data-category="Sport">Sport</button>
+                      <button class="cat-filter" data-category="Muscle">Muscle</button>
+                      <button class="cat-filter" data-category="SUV">SUV</button>
+                      <button class="cat-filter" data-category="Off-Road">Off-Road</button>
+                      <button class="cat-filter" data-category="Moto">Motos</button>
+                      <button class="cat-filter" data-category="Helico">Hélicos</button>
+                      <button class="cat-filter" data-category="Avion">Avions</button>
+                      <button class="cat-filter" data-category="Utilitaire">Utilitaire</button>
+                      <button class="cat-filter" data-category="Service">Service</button>
+                  </div>
+                  <button class="toolbar-btn primary" id="btn-add-vehicle-catalog" style="margin-left:auto; height:34px">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      Ajouter Modèle
+                  </button>
+                  <button class="toolbar-btn" id="btn-save-custom-veh" style="margin-left:8px; height:34px; background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.3) 100%); color: #6ee7b7; border: 1px solid rgba(52,211,153,0.3); border-radius: 6px; padding: 0 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 0 12px rgba(16,185,129,0.15), inset 0 1px 0 rgba(255,255,255,0.1); display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; text-shadow: 0 1px 2px rgba(0,0,0,0.8);" onmouseover="this.style.background='linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(5,150,105,0.4) 100%)'; this.style.boxShadow='0 0 20px rgba(16,185,129,0.3), inset 0 1px 0 rgba(255,255,255,0.2)';" onmouseout="this.style.background='linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.3) 100%)'; this.style.boxShadow='0 0 12px rgba(16,185,129,0.15), inset 0 1px 0 rgba(255,255,255,0.1)';">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="filter: drop-shadow(0 0 4px rgba(52, 211, 153, 0.8));"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                      Sauvegarder Actuel
+                  </button>
+              </div>
+              
+              <div class="catalog-grid" id="catalog-grid-container">
+                  <!-- Generated by JS -->
+              </div>
+          </div> <!-- END SUB-VIEW CATALOG -->
+
+          <!-- SUB-VIEW: CUSTOMISATION -->
+          <div id="vsub-customs-content" class="vsub-content hidden">
+              <div class="v-customs-layout">
+                  <div class="v-customs-sidebar">
+                      <div class="vc-category active" data-cat="performance">Performance</div>
+                      <div class="vc-category" data-cat="visual">Apparence</div>
+                      <div class="vc-category" data-cat="neons">Néons & Lumières</div>
+                      <div class="vc-category" data-cat="wheels">Roues & Pneus</div>
+                      <div class="vc-refresh-btn" onclick="refreshCurrentVehicleMods()">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 8px;"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                          Actualiser
+                      </div>
+                  </div>
+                  <div class="v-customs-main">
+                      <div id="vc-content-performance" class="vc-panel active">
+                          <!-- Performance mods -->
+                      </div>
+                      <div id="vc-content-visual" class="vc-panel hidden">
+                          <!-- Visual mods -->
+                      </div>
+                      <div id="vc-content-neons" class="vc-panel hidden">
+                          <!-- Neon mods -->
+                      </div>
+                      <div id="vc-content-wheels" class="vc-panel hidden">
+                          <!-- Wheel mods -->
+                      </div>
+                  </div>
+              </div>
+              <div class="vc-interaction-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:0.6"><path d="M15 18l-6-6 6-6"/></svg>
+                  Maintenez clic & glissez pour pivoter le véhicule
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:0.6"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+          </div>
+
+        </div>
+
+        <!-- TAB: ENVIRONNEMENT (WORLD) -->
+        <div id="tab-world" class="tab hidden">
+          <div class="v-hero-header" style="margin-bottom: 20px;">
+            <div class="v-hero-content">
+              <h2 class="v-hero-title">Monde & <span>Environnement</span></h2>
+              <p class="v-hero-desc">Contrôle en temps réel du climat, du temps et des infrastructures électriques du serveur.</p>
+            </div>
+            <div class="v-hero-preview-box" style="max-width: 250px; padding: 12px 18px; border: 1.5px solid rgba(245,158,11,0.25); border-radius: 16px; background: linear-gradient(135deg, rgba(245,158,11,0.07) 0%, rgba(251,191,36,0.15) 100%);">
+              <div class="v-preview-placeholder" style="flex-direction: row; gap: 10px; color: #fbbf24; background: none; border: none; padding: 0;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2M4.22 4.22l1.42 1.42M1 12h2M4.22 19.78l1.42-1.42M12 20v2M18.36 18.36l1.42 1.42M21 12h-2M18.36 5.64l1.42-1.42M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+                <div style="text-align: left;">
+                  <div style="font-weight: 700; font-size: 9px; text-transform: uppercase; color: var(--muted2); letter-spacing: 0.5px;">Météo Active</div>
+                  <div id="active-weather-text" style="font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 0 10px rgba(245,158,11,0.3);">ENSOLEILLÉ</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="v-main-layout">
+            <!-- Left Column: Weather Selection -->
+            <div class="v-col" style="flex: 1.3;">
+              <div class="vt-card" style="height: 100%; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                  <div>
+                    <div class="vt-label" style="font-size: 14px; margin-bottom: 2px;">Climat du Serveur</div>
+                    <p class="vt-desc">Sélectionnez le type de météo globale à appliquer instantanément.</p>
+                  </div>
+                  <button class="vt-action-btn" id="btn-freeze-weather" onclick="toggleFreezeWeatherBtn()">
+                    <span class="vtb-icon">❄️</span>
+                    <span class="vtb-text">Figer la Météo</span>
+                  </button>
+                </div>
+
+                <div class="weather-grid">
+                  <div class="weather-btn active" data-weather="EXTRASUNNY" onclick="changeWeather('EXTRASUNNY')">
+                    <span class="w-icon">☀️</span>
+                    <span class="w-name">Ensoleillé</span>
+                  </div>
+                  <div class="weather-btn" data-weather="CLEAR" onclick="changeWeather('CLEAR')">
+                    <span class="w-icon">🌤️</span>
+                    <span class="w-name">Dégagé</span>
+                  </div>
+                  <div class="weather-btn" data-weather="CLOUDS" onclick="changeWeather('CLOUDS')">
+                    <span class="w-icon">☁️</span>
+                    <span class="w-name">Nuageux</span>
+                  </div>
+                  <div class="weather-btn" data-weather="OVERCAST" onclick="changeWeather('OVERCAST')">
+                    <span class="w-icon">🌫️</span>
+                    <span class="w-name">Couvert</span>
+                  </div>
+                  <div class="weather-btn" data-weather="SMOG" onclick="changeWeather('SMOG')">
+                    <span class="w-icon">💨</span>
+                    <span class="w-name">Smog</span>
+                  </div>
+                  <div class="weather-btn" data-weather="FOGGY" onclick="changeWeather('FOGGY')">
+                    <span class="w-icon">🌁</span>
+                    <span class="w-name">Brouillard</span>
+                  </div>
+                  <div class="weather-btn" data-weather="RAIN" onclick="changeWeather('RAIN')">
+                    <span class="w-icon">🌧️</span>
+                    <span class="w-name">Pluie</span>
+                  </div>
+                  <div class="weather-btn" data-weather="THUNDER" onclick="changeWeather('THUNDER')">
+                    <span class="w-icon">⛈️</span>
+                    <span class="w-name">Orage</span>
+                  </div>
+                  <div class="weather-btn" data-weather="SNOW" onclick="changeWeather('SNOW')">
+                    <span class="w-icon">❄️</span>
+                    <span class="w-name">Neige</span>
+                  </div>
+                  <div class="weather-btn" data-weather="BLIZZARD" onclick="changeWeather('BLIZZARD')">
+                    <span class="w-icon">🌬️</span>
+                    <span class="w-name">Blizzard</span>
+                  </div>
+                  <div class="weather-btn" data-weather="XMAS" onclick="changeWeather('XMAS')">
+                    <span class="w-icon">🎄</span>
+                    <span class="w-name">Noël</span>
+                  </div>
+                  <div class="weather-btn" data-weather="HALLOWEEN" onclick="changeWeather('HALLOWEEN')">
+                    <span class="w-icon">🎃</span>
+                    <span class="w-name">Halloween</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Time & Special FX -->
+            <div class="v-col" style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+              <!-- Card: Time Control -->
+              <div class="vt-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <div>
+                    <div class="vt-label" style="font-size: 14px; margin-bottom: 2px;">Heure & Temps</div>
+                    <p class="vt-desc">Ajustement du fuseau horaire global.</p>
+                  </div>
+                  <button class="vt-action-btn" id="btn-freeze-time" onclick="toggleFreezeTimeBtn()">
+                    <span class="vtb-icon">⏱️</span>
+                    <span class="vtb-text">Figer le Temps</span>
+                  </button>
+                </div>
+
+                <div class="time-quick-grid">
+                  <button class="t-quick-btn" onclick="setTimeQuick(8, 0)">🌅 Matin</button>
+                  <button class="t-quick-btn" onclick="setTimeQuick(12, 0)">☀️ Midi</button>
+                  <button class="t-quick-btn" onclick="setTimeQuick(16, 0)">🌇 Après-midi</button>
+                  <button class="t-quick-btn" onclick="setTimeQuick(20, 0)">🌆 Soirée</button>
+                  <button class="t-quick-btn" onclick="setTimeQuick(0, 0)">🌃 Nuit</button>
+                  <button class="t-quick-btn" onclick="setTimeQuick(2, 0)">🌌 Minuit</button>
+                </div>
+
+                <div style="margin-top: 15px;">
+                  <div class="slider-val-row">
+                    <span class="vt-desc">Heures</span>
+                    <span class="mono-badge" id="val-hour">12h</span>
+                  </div>
+                  <input type="range" id="slider-hour" min="0" max="23" value="12" class="custom-range" oninput="onTimeSliderChange()">
+                </div>
+
+                <div style="margin-top: 12px;">
+                  <div class="slider-val-row">
+                    <span class="vt-desc">Minutes</span>
+                    <span class="mono-badge" id="val-minute">00m</span>
+                  </div>
+                  <input type="range" id="slider-minute" min="0" max="59" value="0" class="custom-range" oninput="onTimeSliderChange()">
+                </div>
+              </div>
+
+              <!-- Card: Infrastructure & Blackout -->
+              <div class="vt-card" style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <div class="vt-label" style="font-size: 14px; margin-bottom: 2px;">Coupure Électrique (Blackout)</div>
+                  <p class="vt-desc">Désactive la totalité de l'éclairage public.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-blackout" onchange="sendToClient('toggleBlackout', { active: this.checked })">
+                  <span class="switch-track"><span class="switch-thumb"></span></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: ÉCONOMIE -->
+
+
+
+      </div>
+    </main>
+  </div>
+</div> <!-- End #overlay -->
+
+<!-- PLAYER REPORT UI -->
+<div id="player-report-ui" class="hidden">
+  <div class="pru-container">
+    <div class="pru-header">
+      <div class="pru-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="pru-title-wrap">
+        <div class="pru-title">Signaler un Problème</div>
+        <div class="pru-sub">Un membre du staff vous répondra sous peu</div>
+      </div>
+    </div>
+    <div class="pru-body">
+      <label class="pru-label">Quelle est la raison de votre report ?</label>
+      <textarea id="pru-reason" placeholder="Décrivez votre problème en détail (Joueur ID, bug, besoin d'aide...)" maxlength="300"></textarea>
+      <div class="pru-tips">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Soyez clair et précis pour une intervention rapide.
+      </div>
+    </div>
+    <div class="pru-footer">
+      <button class="pru-btn-cancel" id="btn-pru-cancel">Annuler</button>
+      <button class="pru-voice-btn" id="pru-voice-toggle" title="Enregistrer un message vocal (5s)">
+        <svg id="mic-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <div id="voice-timer" class="hidden">0:00</div>
+      </button>
+      <button class="pru-btn-send" id="btn-pru-send">
+        Envoyer le Report
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="staff-hud" class="hidden">
+  <div class="hud-tool" id="hud-noclip">
+    <div class="hud-tool-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/></svg>
+        NOCLIP ACTIF
+    </div>
+    <div class="hud-keys">
+      <div class="hud-key-row"><span class="h-key">Z/S/Q/D</span><span class="h-desc">Déplacement</span></div>
+      <div class="hud-key-row"><span class="h-key">ESP/ALT</span><span class="h-desc">Monter/Descendre</span></div>
+      <div class="hud-key-row"><span class="h-key">PgUp/PgDn</span><span class="h-desc">Vitesse</span></div>
+      <div class="hud-key-row"><span class="h-key">SHIFT/CTRL</span><span class="h-desc">Boost/Précis</span></div>
+    </div>
+    <div class="hud-quick-actions">
+        <div class="hqa-label">ACTIONS RAPIDES</div>
+        <div class="hqa-btn" onclick="sendToClient('tpmarker')">
+            <span class="h-key">E</span>
+            <span class="h-desc">TP Marqueur</span>
+        </div>
+        <div class="hqa-btn" id="hqa-vanish" onclick="toggleHUDVanish()">
+            <span class="h-key">V</span>
+            <span class="h-desc">Vanish</span>
+        </div>
+        <div class="hqa-btn" onclick="sendToClient('noclip', { active: false })" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05);">
+            <span class="h-key" style="background: #ef4444; color: #fff;">X</span>
+            <span class="h-desc" style="color:#ef4444; font-weight:900;">Désactiver</span>
+        </div>
+    </div>
+  </div>
+  <div class="hud-tool" id="hud-delgun">
+    <div class="hud-tool-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;"><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        DELETE GUN ACTIF
+    </div>
+    <div class="hud-keys">
+      <div class="hud-key-row"><span class="h-key">TIR</span><span class="h-desc">Supprimer</span></div>
+      <div class="hud-key-row"><span class="h-key">G</span><span class="h-desc">Focus & Suppr</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-action" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Action</h2>
+      <button class="modal-close" id="modal-cancel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="modal-body" class="modal-body"></div>
+    <div class="modal-footer">
+      <button class="m-btn m-cancel" id="modal-cancel-btn">Annuler</button>
+      <button class="m-btn m-confirm" id="modal-confirm">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TP ZONES -->
+<div id="modal-tpzones" class="modal-overlay hidden">
+  <div class="modal-content glass" style="max-width: 400px;">
+    <div class="modal-header">
+      <div class="mh-title">CHOIX DE LA ZONE</div>
+      <button class="modal-close" onclick="closeModal('modal-tpzones')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--muted2); font-size: 13px; margin-bottom: 15px;">Sélectionnez la destination pour le joueur.</p>
+      <div id="tp-zones-list" class="tp-zones-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script src="js/notifications.js"></script>
+<script src="js/state_v3.js"></script>
+<script src="js/renders_v3.js"></script>
+<script src="js/app_v3.js"></script>
+
+</body>
+</html>

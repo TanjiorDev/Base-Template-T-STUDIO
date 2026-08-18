@@ -1,0 +1,27 @@
+Copyright (c) 2026 BloodLeak. All rights reserved.
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION OF "BLOODGARAGE" (bl_garage)
+
+1. DEFINITIONS:
+- "Licensor" shall mean BloodLeak, the original creator and copyright owner of the resource.
+- "Software" shall mean the "BloodGarage (bl_garage)" resource files, including but not limited to Lua scripts, JavaScript files, stylesheet (CSS) files, HTML markup documents, SQL database schemas, and documentation.
+- "You" or "Licensee" shall mean the individual or entity executing this Software on their FiveM server.
+
+2. COPYRIGHT PROTECTION:
+The Software is protected by copyright laws, trade secret laws, and international copyright treaties. All title, ownership, and intellectual property rights in and to the Software remain exclusively with BloodLeak.
+
+3. LICENSE GRANTS:
+BloodLeak grants you a personal, non-transferable, non-sublicensable, non-exclusive, and limited license to install and run the Software solely on your private, active FiveM game server.
+
+4. STRICT RESTRICTIONS & PROHIBITIONS:
+You are strictly forbidden from performing any of the following actions without explicit, prior written consent from BloodLeak:
+- **No Redistribution:** You may not copy, share, upload, leak, transfer, distribute, or publish the Software, in whole or in part, to any public repository, forum, website, discord server, or third party.
+- **No Commercial Resale:** You may not sell, rent, lease, sub-license, host, or commercially exploit this Software, nor include it in any paid "script packs" or server templates.
+- **No Brand Removal:** You are strictly prohibited from removing, hiding, altering, or modifying any copyright notices, branding tags, "BloodLeak" references, or author attributes in the source code comments, user interface (UI) layouts, configuration files, or manifest loader.
+- **No Unauthorized Modifications for Release:** You may not modify, rewrite, rename, or adapt this Software for the purpose of publishing or distributing it as a custom fork or derivative work.
+
+5. TERMINATION:
+This License Agreement is effective until terminated. Your rights under this License will terminate automatically without notice from the Licensor if you fail to comply with any term(s) of this Agreement. Upon termination, you must cease all use and destroy all copies of the Software in your possession.
+
+6. NO WARRANTY (DISCLAIMER):
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

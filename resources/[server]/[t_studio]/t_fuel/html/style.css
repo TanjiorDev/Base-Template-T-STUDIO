@@ -1,0 +1,39 @@
+body { 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Roboto', sans-serif; 
+    display: flex; 
+    align-items: center; 
+    justify-content: flex-start; 
+    height: 100vh; 
+    background: transparent; 
+}
+
+#container { 
+    background: rgba(0, 0, 0, 0.7); 
+    border: 1px solid #333; 
+    color: white; 
+    padding: 25px; 
+    width: 380px; 
+    border-radius: 8px; 
+    margin-left: 50px; 
+}
+
+.header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px; }
+.title { margin: 0; font-size: 20px; font-weight: bold; }
+.subtitle { margin: 0; font-size: 12px; color: #aaa; text-transform: uppercase; }
+.quit-box { margin-left: auto; border: 1px solid #555; padding: 5px 10px; font-size: 12px; border-radius: 4px; }
+
+.info-row { display: flex; justify-content: space-between; margin: 15px 0; font-size: 16px; }
+.fuel-amt { font-weight: bold; }
+
+.slider-container { margin: 20px 0; }
+input[type=range] { width: 100%; accent-color: #c20b05; cursor: pointer; }
+
+.total-box { background: rgba(255,255,255,0.05); padding: 20px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center; border-radius: 5px; margin: 20px 0; }
+.price-tag { color: #c20b05; font-size: 24px; font-weight: bold; }
+
+.actions { display: flex; gap: 15px; }
+button { flex: 1; padding: 12px; border-radius: 4px; border: 1px solid #555; cursor: pointer; color: white; font-weight: bold; }
+.btn-cancel { background: transparent; }
+.btn-confirm { background: #c20b05; border: none; }

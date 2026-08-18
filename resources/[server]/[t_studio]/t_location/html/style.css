@@ -1,0 +1,310 @@
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    background: transparent;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#app {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 7vw;
+}
+
+.rental-panel {
+    width: 760px;
+    min-height: 650px;
+    padding: 28px 32px;
+    border-radius: 18px;
+    color: white;
+    background: linear-gradient(145deg, rgba(18, 22, 28, 0.96), rgba(10, 13, 18, 0.96));
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.58), 0 0 28px rgba(220, 20, 35, 0.14);
+    border: 1px solid rgba(220, 20, 35, 0.38);
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.header-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    background: rgba(220, 20, 35, 0.18);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.header-icon svg {
+    width: 42px;
+    fill: #ffffff;
+}
+
+.panel-header h1 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 0.5px;
+}
+
+.panel-header p {
+    margin: 7px 0 0;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 15px;
+}
+
+.money-box {
+    margin-left: auto;
+    padding: 13px 24px;
+    min-width: 130px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(220,20,35,0.08));
+    border: 1px solid rgba(255,255,255,0.08);
+    text-align: center;
+}
+
+.money-box span {
+    display: block;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.48);
+    margin-bottom: 5px;
+}
+
+.money-box strong {
+    color: #ffffff;
+    font-size: 18px;
+}
+
+.duration-box {
+    margin: -14px 0 18px;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(220, 20, 35, 0.28);
+}
+
+.duration-box > span {
+    display: block;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.duration-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.duration-btn {
+    height: 38px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.78);
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+    transition: 0.15s ease;
+}
+
+.duration-btn:hover,
+.duration-btn.active {
+    color: #ffffff;
+    background: linear-gradient(135deg, #b50012, #ffffff);
+    box-shadow: 0 8px 20px rgba(220, 20, 35, 0.28);
+}
+
+.rental-timer {
+    position: absolute;
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    color: white;
+    background: linear-gradient(145deg, rgba(18, 22, 28, 0.96), rgba(10, 13, 18, 0.96));
+    border: 1px solid rgba(220, 20, 35, 0.55);
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
+}
+
+.rental-timer span {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.rental-timer strong {
+    color: #ffffff;
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+
+.vehicle-list {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.vehicle-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.vehicle-list::-webkit-scrollbar-thumb {
+    background: rgba(220, 20, 35, 0.90);
+    border-radius: 10px;
+}
+
+.vehicle-card {
+    display: grid;
+    grid-template-columns: 190px 1fr 120px 150px;
+    align-items: center;
+    gap: 18px;
+    min-height: 112px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.035));
+    border: 1px solid rgba(255, 255, 255, 0.045);
+    transition: 0.18s ease;
+}
+
+.vehicle-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(220, 20, 35, 0.55);
+    background: linear-gradient(135deg, rgba(220, 20, 35, 0.16), rgba(255, 255, 255, 0.04));
+}
+
+.vehicle-image {
+    width: 170px;
+    height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.45));
+}
+
+.vehicle-name {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.vehicle-meta {
+    display: flex;
+    gap: 20px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+}
+
+.vehicle-meta span {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.price {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff;
+    text-align: right;
+}
+
+.price small {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.rent-btn {
+    height: 42px;
+    border: 0;
+    border-radius: 7px;
+    color: white;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    background: linear-gradient(135deg, #b50012, #ffffff);
+    box-shadow: 0 8px 22px rgba(220, 20, 35, 0.35);
+    transition: 0.15s ease;
+}
+
+.rent-btn:hover {
+    transform: scale(1.03);
+    background: linear-gradient(135deg, #ffffff, #b50012);
+}
+
+.panel-footer {
+    display: flex;
+    align-items: center;
+    margin-top: 28px;
+}
+
+.info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+}
+
+.info span {
+    width: 24px;
+    height: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.info p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.close-btn {
+    margin-left: auto;
+    height: 48px;
+    min-width: 120px;
+    padding: 0 18px;
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    border-radius: 10px;
+    color: white;
+    background: rgba(255, 255, 255, 0.055);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.close-btn span {
+    font-size: 28px;
+    margin-left: 10px;
+    vertical-align: -2px;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}

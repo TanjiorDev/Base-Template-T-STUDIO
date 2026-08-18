@@ -1,0 +1,1 @@
+import{t as e}from"./nui-D7RXl6ZD.js";async function t(t,n){let r=await e(t,n);return r&&typeof r.success==`boolean`?r:{success:!1}}async function n(t,n){let r=await e(t,n);return r&&r.success?r.data??null:null}export{n,t};

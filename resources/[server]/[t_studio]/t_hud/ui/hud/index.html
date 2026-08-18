@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="hud-container">
+        <div class="status-circles">
+            <div class="circle-wrapper hunger">
+                <div class="circle-center">
+                    <i class="fa-solid fa-drumstick-bite icon"></i>
+                </div>
+                <svg width="54" height="54">
+                    <circle class="progress" id="hunger-level" cx="27" cy="27" r="24"></circle>
+                </svg>
+            </div>
+
+            <div class="circle-wrapper thirst">
+                <div class="circle-center">
+                    <i class="fa-solid fa-droplet icon"></i>
+                </div>
+                <svg width="54" height="54">
+                    <circle class="progress" id="thirst-level" cx="27" cy="27" r="24"></circle>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('message', function(event) {
+            if (event.data.action === "updateStatus") {
+                updateCircle('hunger-level', event.data.hunger);
+                updateCircle('thirst-level', event.data.thirst);
+            }
+        });
+
+        function updateCircle(id, percent) {
+            const circumference = 150.7; // Correspond au rayon de 24
+            const offset = circumference - (percent / 100 * circumference);
+            document.getElementById(id).style.strokeDashoffset = offset;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1067 @@
+/* ============================================================
+   BLOODLEAK PREMIUM 2026 SPLIT GARAGE DASHBOARD — STYLE.CSS
+   ============================================================ */
+
+:root {
+    --bg-darker: #050608;          /* Noir absolu volcanique */
+    --bg-main: #090b0f;            /* Graphite très sombre */
+    --bg-card: #0e1117;            /* Gris-noir volcanique */
+    --bg-card-hover: #141821;      /* Surlignage volcanique */
+    --bg-active: rgba(239, 68, 68, 0.08); /* Fond rouge translucide actif */
+    
+    --border-main: rgba(255, 255, 255, 0.06);
+    --border-light: rgba(255, 255, 255, 0.03);
+    
+    --primary: #ef4444;            /* Rouge Crimson Électrique */
+    --primary-gradient: linear-gradient(135deg, #b91c1c, #ef4444); /* Dégradé rouge sport */
+    --primary-glow: rgba(239, 68, 68, 0.4); /* Halo de lumière rouge */
+    
+    --warning: #f59e0b;
+    --warning-gradient: linear-gradient(135deg, #ea580c, #f59e0b);
+    --warning-glow: rgba(245, 158, 11, 0.35);
+    
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.12);
+    
+    --danger: #ef4444;
+    --danger-bg: rgba(239, 68, 68, 0.12);
+    
+    --text-white: #ffffff;
+    --text-muted: #9ca3af;
+    --text-dark: #4b5563;
+    
+    --font-outfit: 'Outfit', sans-serif;
+    --font-inter: 'Inter', sans-serif;
+}
+
+/* Reset & Basics */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+html {
+    background: transparent !important;
+    background-color: transparent !important;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--font-inter);
+    color: #ffffff;
+    background: transparent !important;
+    background-color: transparent !important;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+/* Utilities */
+.hidden {
+    display: none !important;
+}
+
+/* 1. Main Viewport Container */
+#garage-app {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: transparent !important;
+    background-color: transparent !important;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease-in-out;
+}
+
+#garage-app.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 2. Sleek 2026 Split Dashboard */
+.dashboard-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    width: 900px;
+    height: 580px;
+    background: var(--bg-darker);
+    border: 1px solid var(--border-main);
+    border-radius: 18px;
+    box-shadow: 0 35px 80px rgba(0, 0, 0, 0.9);
+    display: flex;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#garage-app.show .dashboard-container {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* LEFT PANEL: SELECTION LIST (45% Width) */
+.left-panel {
+    width: 44%;
+    background: var(--bg-main);
+    border-right: 1px solid var(--border-main);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.header-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-icon {
+    font-size: 22px;
+    color: var(--primary);
+    filter: drop-shadow(0 0 8px var(--primary-glow));
+}
+
+.panel-header h1 {
+    font-family: var(--font-outfit);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+}
+
+.subtitle {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-top: 1px;
+    opacity: 0.7;
+}
+
+.header-badge {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: var(--primary);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+/* Search Bar Section */
+.search-section {
+    padding: 16px 24px;
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 36px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 13px;
+    opacity: 0.5;
+}
+
+.search-section input {
+    width: 100%;
+    height: 38px;
+    background: var(--bg-darker);
+    border: 1px solid var(--border-main);
+    border-radius: 8px;
+    padding: 0 16px 0 38px;
+    color: #ffffff;
+    font-family: var(--font-inter);
+    font-size: 12.5px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.search-section input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.1);
+}
+
+/* Vehicle List Container */
+.vehicle-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vehicle-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.vehicle-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.vehicle-list::-webkit-scrollbar-thumb {
+    background: var(--primary-gradient);
+    border-radius: 10px;
+    box-shadow: 0 0 6px var(--primary-glow);
+}
+
+/* Vehicle Row Card */
+.veh-row {
+    flex-shrink: 0; /* Empêche l'écrasement des lignes quand il y a beaucoup de véhicules */
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.veh-row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: transparent;
+    transition: background 0.15s ease;
+}
+
+.veh-row:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Selected Active Card State */
+.veh-row.active {
+    background: var(--bg-active);
+    border-color: var(--primary);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.05);
+}
+
+.veh-row.active::before {
+    background: var(--primary);
+}
+
+.row-left {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.row-name {
+    font-family: var(--font-outfit);
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.row-plate {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+}
+
+.row-right {
+    display: flex;
+    align-items: center;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.status-dot.stored {
+    background-color: var(--success);
+    color: var(--success);
+}
+
+.status-dot.out {
+    background-color: var(--danger);
+    color: var(--danger);
+}
+
+.status-dot.impound {
+    background-color: var(--warning);
+    color: var(--warning);
+}
+
+/* Panel Footer Hint */
+.panel-footer {
+    padding: 14px 24px;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.panel-footer span i {
+    margin-right: 3px;
+}
+
+#vehicle-count {
+    font-family: var(--font-outfit);
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+/* RIGHT PANEL: INSPECTION SCREEN (56% Width) */
+.right-panel {
+    width: 56%;
+    background: var(--bg-darker);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    padding: 30px;
+}
+
+/* Welcome Prompt when no vehicle is active */
+.empty-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+}
+
+.prompt-icon {
+    font-size: 42px;
+    color: var(--primary);
+    margin-bottom: 16px;
+    opacity: 0.25;
+    filter: drop-shadow(0 0 15px var(--primary));
+}
+
+.empty-prompt h2 {
+    font-family: var(--font-outfit);
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.empty-prompt p {
+    font-size: 11.5px;
+    line-height: 1.5;
+    max-width: 280px;
+    opacity: 0.6;
+}
+
+/* Active Detailed View Content */
+.details-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+#detail-name {
+    font-family: var(--font-outfit);
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+.detail-plate-sub {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.8px;
+    margin-top: 2px;
+}
+
+.detail-plate-sub span {
+    color: var(--primary);
+}
+
+.status-badge {
+    font-family: var(--font-outfit);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.status-badge.stored {
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-badge.out {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-badge.impound {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);
+}
+
+.status-badge.other {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--warning);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Dynamic Supercar Preview Graphic Section */
+.vehicle-preview {
+    position: relative;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.preview-car-icon {
+    font-size: 90px;
+    color: #ffffff;
+    opacity: 0.15;
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
+    z-index: 2;
+    animation: floatAnim 4s ease-in-out infinite;
+}
+
+.preview-glow {
+    position: absolute;
+    width: 220px;
+    height: 35px;
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, transparent 75%);
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: blur(12px);
+    z-index: 1;
+}
+
+@keyframes floatAnim {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* Telemetry stats layout */
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.stat-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+
+.stat-info span i {
+    margin-right: 4px;
+    font-size: 10px;
+}
+
+.stat-value {
+    font-family: var(--font-outfit);
+    font-size: 11px;
+    color: #ffffff;
+}
+
+.stat-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary-gradient);
+    border-radius: 3px;
+    transition: width 0.3s ease-out;
+}
+
+/* Action button trigger area */
+.action-section {
+    width: 100%;
+}
+
+.action-btn {
+    width: 100%;
+    height: 48px;
+    background: var(--primary-gradient);
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-family: var(--font-outfit);
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px var(--primary-glow);
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 20px var(--primary-glow);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+}
+
+/* Action Button Danger/Warning themed (Impound pay) */
+.action-btn.impound-action {
+    background: var(--warning-gradient);
+    box-shadow: 0 4px 15px var(--warning-glow);
+}
+
+.action-btn.impound-action:hover {
+    box-shadow: 0 6px 20px var(--warning-glow);
+}
+
+/* GPS Tracker Crimson glowing action button */
+.action-btn.track-action {
+    background: linear-gradient(135deg, #b91c1c, #ef4444) !important;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35) !important;
+}
+
+.action-btn.track-action:hover {
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5) !important;
+}
+
+/* Action Button Disabled State */
+.action-btn.disabled {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.03) !important;
+    color: var(--text-dark) !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    filter: none !important;
+}
+
+/* ============================================================
+   PANNEAU D'ADMINISTRATION DES FOURRIÈRES (GLASSMORPHISME VOLCANIQUE)
+   ============================================================ */
+
+.admin-toggle-btn {
+    font-size: 16px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0.7;
+}
+
+.admin-toggle-btn:hover {
+    color: var(--primary);
+    transform: rotate(60deg) scale(1.15);
+    filter: drop-shadow(0 0 8px var(--primary-glow));
+    opacity: 1;
+}
+
+.admin-panel {
+    position: absolute;
+    top: 0;
+    right: -100%; /* Masqué hors écran par défaut */
+    width: 56%;
+    height: 100%;
+    background: var(--bg-darker); /* Solide noir volcanique assorti sans aucun flou ni filtre */
+    border-left: 1px solid rgba(239, 68, 68, 0.15);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-panel.show {
+    right: 0; /* Slide in! */
+}
+
+/* Admin Panel Header */
+.admin-header {
+    padding: 24px 30px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-header h2 {
+    font-family: var(--font-outfit);
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-header h2 i {
+    color: var(--primary);
+    filter: drop-shadow(0 0 6px var(--primary-glow));
+}
+
+.admin-close-btn {
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    transition: color 0.2s ease, transform 0.2s ease;
+    opacity: 0.6;
+}
+
+.admin-close-btn:hover {
+    color: #ffffff;
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+/* Admin Body */
+.admin-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.admin-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.admin-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+/* Field Group */
+.admin-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.admin-field-group label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.admin-input, .admin-select {
+    width: 100%;
+    height: 40px;
+    background: rgba(5, 6, 8, 0.7);
+    border: 1px solid var(--border-main);
+    border-radius: 8px;
+    padding: 0 14px;
+    color: #ffffff;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.admin-select {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px;
+    padding-right: 40px;
+}
+
+.admin-select option {
+    background-color: var(--bg-darker);
+    color: #ffffff;
+}
+
+.admin-input:focus, .admin-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.15);
+    background: rgba(5, 6, 8, 0.9);
+}
+
+/* Coords Section */
+.admin-coords-section {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.coords-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+
+.coords-title span i {
+    color: var(--primary);
+    margin-right: 3px;
+}
+
+.acquire-btn {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: var(--primary);
+    font-family: var(--font-outfit);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.acquire-btn:hover {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 0 8px var(--primary-glow);
+}
+
+.coords-inputs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.coord-val {
+    background: rgba(5, 6, 8, 0.6);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 10.5px;
+    color: #ffffff;
+    justify-content: space-between;
+}
+
+.coord-val span:first-child {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 9.5px;
+    margin-right: 3px;
+}
+
+.coord-val span:last-child {
+    font-family: monospace;
+    opacity: 0.9;
+}
+
+.coord-input {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-family: monospace;
+    font-size: 10.5px;
+    text-align: right;
+    width: calc(100% - 16px);
+    outline: none;
+    padding: 0;
+    -moz-appearance: textfield;
+}
+
+.coord-input::-webkit-outer-spin-button,
+.coord-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.coord-val:focus-within {
+    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(5, 6, 8, 0.9);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.15);
+}
+
+/* Admin Footer */
+.admin-footer {
+    padding: 20px 30px;
+    border-top: 1px solid var(--border-light);
+}
+
+.admin-action-btn {
+    width: 100%;
+    height: 44px;
+    font-family: var(--font-outfit);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.admin-action-btn.save-btn {
+    background: var(--primary-gradient);
+    color: #ffffff;
+    box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.admin-action-btn.save-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 20px var(--primary-glow);
+}
+
+.admin-action-btn.save-btn:active {
+    transform: translateY(0);
+}
+
+/* Masquage temporaire pour le mode de sélection interactive de position */
+.temp-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.25s ease-in-out !important;
+}
+
+/* 2026 Sleek Vehicle Preview Image styling */
+.preview-vehicle-img {
+    max-width: 90%;
+    max-height: 140px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 15px rgba(239, 68, 68, 0.15));
+    z-index: 3;
+    animation: floatAnim 4s ease-in-out infinite;
+}
+
+/* Admin Deletion Action Button styling */
+.admin-action-btn.delete-btn {
+    background: linear-gradient(135deg, #7f1d1d, #b91c1c) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(185, 28, 28, 0.35) !important;
+}
+
+.admin-action-btn.delete-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 20px rgba(185, 28, 28, 0.5) !important;
+}
+
+.admin-action-btn.delete-btn:active {
+    transform: translateY(0);
+}
+
+/* Scrollbar esthétique haut de gamme pour la liste des points de spawn admin */
+#admin-spawn-points-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+#admin-spawn-points-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#admin-spawn-points-list::-webkit-scrollbar-thumb {
+    background: var(--primary-gradient);
+    border-radius: 10px;
+    box-shadow: 0 0 5px var(--primary-glow);
+}
+
+/* ============================================================
+   SELECTION OVERLAY (PREMIUM TOP HUD CARD)
+   ============================================================ */
+#selection-overlay {
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translate(-50%, -50px) scale(0.95);
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#selection-overlay:not(.hidden) {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+}
+
+.selection-card {
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 12px;
+    padding: 16px 24px;
+    width: 380px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(239, 68, 68, 0.15);
+}
+
+.selection-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.selection-icon {
+    font-size: 24px;
+    color: var(--primary);
+    filter: drop-shadow(0 0 6px var(--primary-glow));
+    animation: pulseGlow 2s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 4px var(--primary-glow));
+    }
+    50% {
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 12px var(--primary-glow));
+    }
+}
+
+.selection-header-text h2 {
+    font-family: var(--font-outfit);
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.8px;
+    margin: 0;
+}
+
+.selection-header-text p {
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+.selection-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    margin: 12px 0;
+}
+
+.selection-body {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.selection-instruction {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.key-badge {
+    background: var(--primary-gradient);
+    color: #ffffff;
+    font-family: var(--font-outfit);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px var(--primary-glow);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 24px;
+    text-align: center;
+}
+
+.key-badge.cancel {
+    background: linear-gradient(135deg, #374151, #1f2937);
+    box-shadow: none;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.instruction-text {
+    font-size: 10px;
+    font-weight: 600;
+    color: #ffffff;
+    opacity: 0.9;
+}
