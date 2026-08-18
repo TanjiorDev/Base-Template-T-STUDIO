@@ -21,6 +21,8 @@ Config.RentalDurations = {
     { label = '1 heure', minutes = 60, multiplier = 2 },
     { label = '2 heures', minutes = 120, multiplier = 4 }
 }
+-- Point de location
+Config.RentalPoint = vec3(-211.114487,-1001.537964,29.662613)
 
 -- Spawn véhicule
 Config.SpawnVehicle = vec4(-212.92, -999.82, 28.88, 337.92)
