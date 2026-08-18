@@ -1,6 +1,3 @@
-shared_script '@vSpawner/shared_fg-obfuscated.lua'
-
-
 fx_version 'cerulean'
 game 'gta5'
 
